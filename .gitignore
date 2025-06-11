@@ -193,3 +193,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 usuarios.csv
+usuarios_simulados.csv

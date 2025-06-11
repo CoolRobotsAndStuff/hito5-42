@@ -1,5 +1,5 @@
 import hashlib
-ARCHIVO_USUARIOS = 'usuarios.csv' # Nombre del archivo para almacenar usuarios y contraseñas
+ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 
 
 # Banner del programa
@@ -51,7 +51,9 @@ def guardar_usuarios(usuarios):
 
 # Función para encriptar la contraseña usando SHA-256. (no se si lo veran pero suma)
 def encriptar_contrasena(contrasena):
-    return hashlib.sha256(contrasena.encode()).hexdigest()
+    # Usar un salt fijo para el hash
+    salt = 'grupo42_salt2024'
+    return hashlib.sha256((salt + contrasena).encode()).hexdigest()
 
 # Función para validar la contraseña según los criterios establecidos.
 def validar_contrasena(contrasena):
@@ -106,10 +108,19 @@ def iniciar_sesion(usuarios):
         menu_principal()  # Mostrar menú principal tras inicio de sesión correcto
     else:
         print('Contraseña incorrecta')
+        while True:
+            print("¿Desea intentar de nuevo (1) o volver al menú de inicio (2)?")
+            opcion = input("> ").strip()
+            if opcion == '1':
+                return iniciar_sesion(usuarios)
+            elif opcion == '2':
+                return  # Vuelve al menú de acceso (menu_de_acceso)
+            else:
+                print("Opción no válida. Ingrese 1 para reintentar o 2 para volver al menú de acceso.")
 
 # Menu de inicio pre-registro.
 # De aca se va al menu principal
-def menu_inicio():
+def menu_de_acceso():
     usuarios = cargar_usuarios()
     while True:
         print("""
@@ -185,4 +196,4 @@ def consejos_vestimenta():
     pass
 
 # iniciar el programa
-menu_inicio()
+menu_de_acceso()
