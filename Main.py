@@ -1,4 +1,10 @@
+# Integrar Api's necesarias
+# AYUDA NO SE USAR APIS AAAAAAAAAA
+# Importar las librerías necesarias
 import hashlib
+# Declarar Constantes
+OPENWEATHERMAP_API_KEY = 'key' # Clave de la API de OpenWeatherMap
+GEMINI_API_KEY = 'key' # Clave de la API de Gemini
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 
 
@@ -149,51 +155,36 @@ def menu_de_acceso():
 # guardar un historial global de consultas,
 # generar estadísticas globales
 # ofrecer consejos de vestimenta mediante IA.
-
 def menu_principal():
     while True:
         print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
         ║                           MENÚ PRINCIPAL                                   ║
         ╠════════════════════════════════════════════════════════════════════════════╣
-        ║   1. Consultar clima                                                       ║
-        ║   2. Ver historial de consultas                                            ║
-        ║   3. Estadísticas globales                                                 ║
-        ║   4. Consejos de vestimenta                                                ║
-        ║   5. Salir                                                                 ║
+        ║ 1. Consultar Clima Actual y Guardar en Historial Global                    ║
+        ║ 2. Ver Mi Historial Personal de Consultas por Ciudad                       ║
+        ║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
+        ║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
+        ║ 5. Acerca De...                                                            ║
+        ║ 6. Salir                                                                   ║
         ╚════════════════════════════════════════════════════════════════════════════╝
         """)
         print("\n{:^80}\n".format("Ingrese la opción deseada:"))
-        opción = input("> ").strip()
-        if opción == "1":
-            consultar_clima()
-        elif opción == "2":
-            historial_consultas()
-        elif opción == "3":
-            estadisticas_globales()
-        elif opción == "4":
-            consejos_vestimenta()
-        elif opción == "5":
+        opcion = input("> ").strip()
+        if opcion == "1":
+            pass  # Consultar Clima Actual y Guardar en Historial Global
+        elif opcion == "2":
+            pass  # Ver Mi Historial Personal de Consultas por Ciudad
+        elif opcion == "3":
+            pass  # Estadísticas Globales de Uso y Exportar Historial Completo
+        elif opcion == "4":
+            pass  # Consejo IA: ¿Cómo Me Visto Hoy?
+        elif opcion == "5":
+            pass  # Acerca De...
+        elif opcion == "6":
             print("Saliendo del programa...")
             exit()
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
-
-def consultar_clima():
-    # Aca va la lógica para consultar el clima
-    pass
-
-def historial_consultas():
-    # Aca va la lógica para ver el historial de consultas
-    pass
-
-def estadisticas_globales():
-    # Aca va la lógica para generar estadísticas globales
-    pass
-
-def consejos_vestimenta():
-    # Aca va la lógica para ofrecer consejos de vestimenta
-    pass
-
-# iniciar el programa
+# Iniciar el programa mostrando el menú de acceso
 menu_de_acceso()
