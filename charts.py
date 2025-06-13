@@ -1,4 +1,5 @@
-from math import atan2, pi
+import time
+from math import atan2, pi, atan
 
 def pie(v, labels, r):
 
@@ -49,5 +50,106 @@ def pie(v, labels, r):
 
     print("\033[0m")
 
+
+def bresenham_line(matrix, start, end):
+    """Draw a line in the matrix from start to end coordinates using Bresenham's algorithm."""
+    x1, y1 = start
+    x2, y2 = end
+
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    sx = 1 if x1 < x2 else -1
+    sy = 1 if y1 < y2 else -1
+    err = dx - dy
+
+    while True:
+        slope = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')
+        
+        char = "xx"
+        err2 = err * 2
+        erry = err
+        if err2 > -dy:
+            err -= dy
+            erry = err
+            x1 += sx
+
+        if err2 < dx:
+            err += dx
+            y1 += sy
+
+        if slope < 0:
+            if err*2 < -dy:
+                char = "__"
+            elif err*2 > dx or err2 > dx:
+                char = "| "
+            else:
+                char = "_/"
+                char = "／"
+        else:
+            if err2 < -dy:
+                char = "__"
+            elif err*2 > dx or err2 > dx:
+                char = "| "
+            else:
+                char = "\_"
+                char = "＼"
+
+        if 0 <= x1 < len(matrix) and 0 <= y1 < len(matrix[0]):
+            matrix[x1][y1] = char
+        
+        if x1 == x2 and y1 == y2:
+            break
+        
+
+def line(ys, w, h):
+    w //= 2
+    ys = list(map(lambda y: max(ys)-y, ys))
+
+    maxx = w/(len(ys)-1)
+    fy = (h-1)/max(ys)
+
+    ys = list(map(lambda y: round(y*fy), ys))
+
+    screen = []
+    for i in range(h):
+        row = []
+        for j in range(w):
+            row.append("  ")
+        screen.append(row)
+
+    for index in range(0, len(ys)-1):
+        x1 = round(index*maxx) 
+        x2 = round((index+1)*maxx)
+        y1 = ys[index]
+        y2 = ys[index+1]
+        bresenham_line(screen, (y1, x1), (y2, x2))
+
+    print("__"*(w+1))
+    for y, row in enumerate(screen):
+        r = ""
+        for x, value in enumerate(row):
+            r+=value
+        print("|", end="")
+        print("\033[31m"+r+"\033[0m", end="")
+        print("|")
+    print("--"*(w+1))
+
+
+
+    # if 0:
+    #     for y in range(0, h):
+    #         t = ""
+    #         for x in range(0, w):
+    #                     if y == int(yval):
+    #                         t+= "\033[31m██"
+    #                         break
+    #             else:
+    #                 t += ".."
+    #         print(t)
+
+
+
 if __name__ == "__main__":
     pie([0.33, 0.33, 0.34], ["My Thing", "Your Thing", "Other Thing"], r=8)
+
+    line(ys=[2, 0.5, 3, 0.1, 2, 5], w=80, h=20)
