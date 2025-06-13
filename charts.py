@@ -121,6 +121,7 @@ def line(ys, w, h, div_n):
 
     for i in range(h):
         row = []
+        row.append("| ")
         if i%div_h == 0:
             if (i == 0):
                 for j in range(w):
@@ -137,7 +138,7 @@ def line(ys, w, h, div_n):
             row.append("|")
         screen.append(row)
     
-    screen.append(["__"]*w + [f"|{0:.2f}"])
+    screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
     row = ["  "]*w
     for i in range(0, len(ys)-1):
         x1 = int(i*maxx) 
@@ -149,14 +150,13 @@ def line(ys, w, h, div_n):
         x2 = round((index+1)*maxx)
         y1 = ys[index]
         y2 = ys[index+1]
-        bresenham_line(screen, w, h, (y1, x1), (y2, x2))
+        bresenham_line(screen, w+1, h, (y1, x1), (y2, x2))
 
     print("__"*(w+1))
     for y, row in enumerate(screen):
         r = ""
         for x, value in enumerate(row):
             r+=value
-        print("|", end="")
         print(r)
 
 
