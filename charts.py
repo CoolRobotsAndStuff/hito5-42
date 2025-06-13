@@ -34,10 +34,10 @@ def windows_enable_unicode_and_ansi():
         sys.stdout.reconfigure(encoding='utf-8')
 
 def pie(v, labels, r):
+    # Base implementation from https://codegolf.stackexchange.com/questions/23350/ascii-art-pie-chart
     mult = (1 / sum(v))
     for i in range(len(v)):
         v[i] *= mult
-        
 
     def s(k,v,a):
         if not v:
@@ -45,7 +45,6 @@ def pie(v, labels, r):
         if a<v[0]:
             return k[0]
         return s(k[1:], v[1:], a-v[0])
-
 
     i = -2
     for y in range(-r, max(r, len(v)*2)):
@@ -72,7 +71,7 @@ def pie(v, labels, r):
 
 
 def bresenham_line(matrix, width, height, start, end):
-    """Draw a line in the matrix from start to end coordinates using Bresenham's algorithm."""
+    """Draw line in matrix with Bresenham: https://en.wikipedia.org/wiki/Bresenham's_line_algorithm"""
     x1, y1 = start
     x2, y2 = end
 
@@ -121,10 +120,10 @@ def bresenham_line(matrix, width, height, start, end):
 
         if 0 <= x1 < height and 0 <= y1 < width:
             matrix[x1][y1] = "\033[31m" + char + "\033[0m"
-        
+
         if x1 == x2 and y1 == y2:
             break
-        
+
 
 def line(ys, w, h, div_n):
     div_h = h // (div_n+1)
