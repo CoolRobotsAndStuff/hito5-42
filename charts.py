@@ -1,5 +1,23 @@
 import time
-from math import atan2, pi, atan
+from math import atan2, pi, atan, ceil
+
+colors = [ 
+    "\033[30m█",  # Black..............
+    "\033[31m█",  # Red                
+    "\033[36m█",  # Cyan               
+    "\033[33m█",  # Yellow             
+    "\033[34m█",  # Blue               
+    "\033[32m█",  # Green              
+    "\033[35m█",  # Magenta            
+    "\033[37m█",  # White              
+    "\033[91m█",  # Bright Red         
+    "\033[92m█",  # Bright Green       
+    "\033[93m█",  # Bright Yellow      
+    "\033[94m█",  # Bright Blue        
+    "\033[95m█",  # Bright Magenta     
+    "\033[96m█",  # Bright Cyan        
+    "\033[97m█"   # Bright White       
+]
 
 def pie(v, labels, r):
     mult = (1 / sum(v))
@@ -14,23 +32,6 @@ def pie(v, labels, r):
             return k[0]
         return s(k[1:], v[1:], a-v[0])
 
-    colors = [ 
-        "\033[30m█",  # Black..............
-        "\033[31m█",  # Red                
-        "\033[36m█",  # Cyan               
-        "\033[33m█",  # Yellow             
-        "\033[34m█",  # Blue               
-        "\033[32m█",  # Green              
-        "\033[35m█",  # Magenta            
-        "\033[37m█",  # White              
-        "\033[91m█",  # Bright Red         
-        "\033[92m█",  # Bright Green       
-        "\033[93m█",  # Bright Yellow      
-        "\033[94m█",  # Bright Blue        
-        "\033[95m█",  # Bright Magenta     
-        "\033[96m█",  # Bright Cyan        
-        "\033[97m█"   # Bright White       
-    ]
 
     i = -2
     for y in range(-r, max(r, len(v)*2)):
@@ -159,9 +160,63 @@ def line(ys, w, h, div_n):
             r+=value
         print(r)
 
+def bar(vals: list, labels: list, w, h, div_n):
+    div_h = h // (div_n+1)
+    w //= 2
+    max_y = ceil(max(vals))
+    screen = []
+
+    bar_space = w//len(vals)
+
+    for i in range(h):
+        row = []
+        row.append("| ")
+
+        if i%div_h == 0:
+            char = "  " if i == 0 else "\033[30m__\033[0m"
+            for j in range(w):
+                row.append(char)
+
+            row.append("|")
+            value = max_y * (1-(i/h))
+            row.append(f"{value:.2f}")
+        else:
+            for j in range(w):
+                row.append("  ")
+            row.append("|")
+
+        screen.append(row)
+
+    screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
+
+    for i, v in enumerate(vals):
+        for x in range(i*bar_space+2, (i+1)*bar_space-2):
+            for y in range(h, int((vals[i]/max_y)*h),-1):
+                screen[y][x+1] = colors[i]*2+"\033[0m"
+
+
+    for y, row in enumerate(screen):
+        for x, value in enumerate(row):
+            print(value, end="")
+        print("")
+
+    print("")
+
+    for i, l in enumerate(labels):
+        print("      " + colors[i] + "\033[0m " + l, end="  "*(bar_space - len(l) - 2))
+    print("")
+
 
 
 if __name__ == "__main__":
     pie([0.33, 0.33, 0.33], ["My Thing", "Your Thing", "Other Thing"], r=8)
+    
+    print("")
 
     line(ys=[2, 0.5, 3, 0.1, 2, 5], w=80, h=20, div_n=4)
+
+    print("\n")
+
+    bar([2, 4.5, 3.2, 0.99], labels=["ahhh", "pup", "messi", ":)"], w=80, h=20, div_n=4)
+
+    print("")
