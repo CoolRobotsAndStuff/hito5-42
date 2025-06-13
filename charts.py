@@ -1,14 +1,17 @@
 import time
 from math import atan2, pi, atan, ceil
+import ctypes
+import sys
+import os
 
 colors = [ 
-    "\033[30m█",  # Black..............
+    #"\033[30m█",  # Black..............
     "\033[31m█",  # Red                
     "\033[36m█",  # Cyan               
-    "\033[33m█",  # Yellow             
-    "\033[34m█",  # Blue               
     "\033[32m█",  # Green              
     "\033[35m█",  # Magenta            
+    "\033[33m█",  # Yellow             
+    "\033[34m█",  # Blue               
     "\033[37m█",  # White              
     "\033[91m█",  # Bright Red         
     "\033[92m█",  # Bright Green       
@@ -18,6 +21,17 @@ colors = [
     "\033[96m█",  # Bright Cyan        
     "\033[97m█"   # Bright White       
 ]
+
+
+def windows_enable_unicode_and_ansi():
+    if os.name == 'nt': # for Bimbows
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.GetStdHandle(-11) # STD_OUTPUT_HANDLE
+        mode = ctypes.c_ulong()
+        kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+        kernel32.SetConsoleMode(handle, mode.value | 0x0001 | 0x0004)  # ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+
+        sys.stdout.reconfigure(encoding='utf-8')
 
 def pie(v, labels, r):
     mult = (1 / sum(v))
@@ -68,6 +82,13 @@ def bresenham_line(matrix, width, height, start, end):
     sy = 1 if y1 < y2 else -1
     err = dx - dy
 
+    up_slope = "／"
+    down_slope = "＼"
+    if os.name == 'nt': #compensate for shitty unicode support on windows
+        down_slope = "\\_"
+        up_slope = "_/"
+
+
     while True:
         slope = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')
         
@@ -89,16 +110,14 @@ def bresenham_line(matrix, width, height, start, end):
             elif err*2 > dx or err2 > dx:
                 char = "| "
             else:
-                char = "_/"
-                char = "／"
+                char = up_slope
         else:
             if err2 < -dy:
                 char = "__"
             elif err*2 > dx or err2 > dx:
                 char = "| "
             else:
-                char = "\\_"
-                char = "＼"
+                char = down_slope
 
         if 0 <= x1 < height and 0 <= y1 < width:
             matrix[x1][y1] = "\033[31m" + char + "\033[0m"
@@ -209,6 +228,8 @@ def bar(vals: list, labels: list, w, h, div_n):
 
 
 if __name__ == "__main__":
+    windows_enable_unicode_and_ansi()
+
     pie([0.33, 0.33, 0.33], ["My Thing", "Your Thing", "Other Thing"], r=8)
     
     print("")
