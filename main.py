@@ -338,8 +338,10 @@ def menu_principal():
         elif opcion == "5":
             pass  # Acerca De...
         elif opcion == "6":
-            print("Saliendo del programa...")
-            exit()
+            print("Cerrando sesión...")
+            global usuario_logueado
+            usuario_logueado = None
+            return menu_de_acceso()
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
 
