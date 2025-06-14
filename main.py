@@ -93,6 +93,7 @@ def validar_contrasena(contrasena):
 
 # Funcion para registrar un nuevo usuario.
 def registrar_usuario(usuarios):
+    global usuario_logueado
     print('Registro de usuario')
     nombre_usuario = ""
     nombre_usuario = input('Nombre de usuario: ').strip()
@@ -123,6 +124,7 @@ def registrar_usuario(usuarios):
 
 # Función para iniciar sesión con un usuario ya registrado.
 def iniciar_sesion(usuarios):
+    global usuario_logueado
     print('Inicio de sesión')
     nombre_usuario = input('Nombre de usuario: ').strip()
     if nombre_usuario not in usuarios:
@@ -131,6 +133,7 @@ def iniciar_sesion(usuarios):
     contraseña = input('Contraseña: ')
     if usuarios[nombre_usuario] == contraseña:
         usuario_logueado = nombre_usuario
+        print("usuario_logueado", usuario_logueado)
         print(f'Bienvenido, {usuario_logueado}!')
         menu_principal()  # Mostrar menú principal tras inicio de sesión correcto
     else:
@@ -172,7 +175,7 @@ def menu_de_acceso():
             print("{:^80}".format('Opción no válida'))
 
 #Formatear unificar los datos de las APIS de clima
-def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open meteo
+def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open mete2
     current = data.get("current", {})
     temp = current.get("temperature_2m", "N/A")
     wind_speed = current.get("wind_speed_10m", "N/A")
@@ -204,7 +207,7 @@ def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos
         f"💨 Viento: {wind_speed} km/h"
     )
 
-def format_weather_report(weather_data: dict) -> str:  #formateo los datos de open weather map
+def format_weather_report(weather_data: dict) -> str:  #formateo los datos de open weather ma2
         name = weather_data.get("name", "Ubicación desconocida")
         main = weather_data["main"]
         weather = weather_data["weather"][0]
@@ -232,7 +235,8 @@ def format_weather_report(weather_data: dict) -> str:  #formateo los datos de op
         )
 
 
-def save_weather_summary(source: str, city: str, summary: str): #guardo los datos basicamente de las APIs
+def save_weather_summary(city: str, weather: apis.Weather): #guardo los datos basicamente de las APIs
+    global usuario_logueado
     file_exists = os.path.isfile(ARCHIVO_HISTORIAL_GLOBAL)
 
     with open(ARCHIVO_HISTORIAL_GLOBAL, mode="a", newline='', encoding="utf-8") as file:
@@ -242,9 +246,17 @@ def save_weather_summary(source: str, city: str, summary: str): #guardo los dato
         if not file_exists:
             writer.writeheader()
 
-        # Escribir los datos
-        pass
-        #writer.writerow({"usuario": usuario_logueado #resto de campos })
+        date_time_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        assert(usuario_logueado is not None)
+        writer.writerow({
+            "usuario": usuario_logueado,
+            "ciudad": city,
+            "fechahora": date_time_string,
+            "temperatura_c": weather.temp.value,
+            "condicion_clima": weather.description,
+            "humedad_porcentaje": weather.humidity.value,
+            "viento_kmh": weather.wind_speed.value
+        })
 
 #Historial de consultas y consultar el clima
 def consult_weather():
@@ -254,27 +266,28 @@ def consult_weather():
         ╚════════════════════════════════════════════════════════════════════════════╝
             """)
     city_name = input()
-    success, data = apis.get_weather_openweathermap(city_name.casefold())#weather options
-    success_ow, data_ow = apis.get_weather_openweathermap(city_name.casefold())
-    w1 = format_weather_openmeteo(data,city_name)
-    w2 = format_weather_report(data_ow)
+    try:
+        weather = apis.get_weather(city_name)
+    except: 
+        print(" Error al obtener el clima:", data)
+        return
 
-    if(success and success_ow):
-        print(f"""\n
+    print("""\n
         ╔════════════════════════════════════════════════════════════════╗
         ║                                                                ║
-        ║    {format_weather_openmeteo(data,city_name)}                  ║
-        ║    {format_weather_report(data_ow)}                            ║
+        """)
+    print(weather) # TODO formatear bien
+
+    print("""\n
+        ║                                                                ║
         ╚════════════════════════════════════════════════════════════════╝
-    """)
-        save_weather_summary(usuario_logueado,"openmeteo",city_name, w1 ) #guardo los datos obtenidos y formateados de openmeteo
-        save_weather_summary(usuario_logueado,"openweathermap",city_name, w2 ) #guardo los datos obtenidos y formateados de openweathermap
-    else:
-        print(" Error al obtener el clima:", data)
-        print(" Error al obtener el clima:", data_ow)
+        """)
+
+    save_weather_summary(city_name, weather)
 
 def consult_history():
-    entrys = []
+    global usuario_logueado
+    entries = []
     print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
         ║ Ingrese el nombre de una ciudad porfavor                                   ║
@@ -282,26 +295,47 @@ def consult_history():
         """)
     city_name = input()
     try:
-        with open("historial_global.csv", mode="w", newline='', encoding="utf-8") as file:
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
 
             for row in reader:
                 if row["usuario"] == usuario_logueado and row["ciudad"] == city_name:
-                    entrys.append(row)
+                    entries.append(row)
     except FileNotFoundError:
         print(f" No hay datos para {usuario_logueado} en {city_name}")
         return
 
-    if not entrys:
+    if not entries:
         print(f" No hay datos para {usuario_logueado} en {city_name}")
         return
 
     print(f"📊 Entradas para {usuario_logueado} en {city_name}:\n")
-    entrys.sort(key=itemgetter("fechahora"))
+    entries.sort(key=itemgetter("fechahora"))
 
-    for e in entrys:
-        # Printear las filas con los datos
-        pass
+    max_column_width = 0
+
+    for row in entries:
+        for value in row.values():
+            if len(value) > max_column_width:
+                max_column_width = len(value)
+
+    for value in entries[0].keys():
+        if len(value) > max_column_width:
+            max_column_width = len(value)
+    
+    print("| ", end="")
+    for value in entries[0].keys():
+        print(f"{value.center(max_column_width)}",  end="| ")
+
+    print("")
+
+    for e in entries:
+        print("| ", end="")
+        for value in e.values():
+            print(f"{value:<{max_column_width}}", end="| ")
+        print("")
+
+
 
 
 # aca arme el Menú principal para :
