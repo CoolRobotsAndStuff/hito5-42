@@ -148,7 +148,10 @@ def line(ys, w, h, div_n):
                     row.append("  ")
             else:
                 for j in range(w):
-                    row.append("\033[30m__\033[0m")
+                    color = "\033[30m"
+                    if os.name == 'nt':
+                        color = "\033[37m"
+                    row.append(color + "__\033[0m")
             row.append("|")
             value = max_y * (1-(i/h))
             row.append(f"{value:.2f}")
@@ -192,7 +195,10 @@ def bar(vals: list, labels: list, w, h, div_n):
         row.append("| ")
 
         if i%div_h == 0:
-            char = "  " if i == 0 else "\033[30m__\033[0m"
+            color = "\033[30m"
+            if os.name == 'nt':
+                color = "\033[37m"
+            char = "  " if i == 0 else color + "__\033[0m"
             for j in range(w):
                 row.append(char)
 
