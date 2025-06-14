@@ -16,29 +16,29 @@ ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar 
 
 # Banner del programa
 print ('''
-       ######% #################     ################%              %#####                      
-       ######% ###################    %################%             ######                     
-         ####% #####################    ################%             #####%                    
-           ##%        ######             ##       #######        ##    #####%                   
-                      ######         ##           ######%       ####   ######                   
-       ###            ######         ###%   %##########%       ######   ######                  
-       #####%         ######         #####   ########         #######    ######                 
-       ######%        ######         ######%   #########      ######     #######                
-       ######%        ######         ######%    %########    ###########  %######               
-       ######%          %###         ######        #######  ############## ######               
-       ######%        ##%  #         ######        ######% ###############% ######              
-       ######%        #####          #############% #####%%######%           ######             
-       ######%        ######         ############### #### #######            %#####%            
-       ######%        ######         ################    #######              ####### 
-         _____                     _ _   __              _      _    _____ _ _                 
-        / ____|                   | (_) /_/             | |    | |  / ____| (_)                
-       | |  __ _   _  __ _ _ __ __| |_  __ _ _ __     __| | ___| | | |    | |_ _ __ ___   __ _ 
+       ######% #################     ################%              %#####
+       ######% ###################    %################%             ######
+         ####% #####################    ################%             #####%
+           ##%        ######             ##       #######        ##    #####%
+                      ######         ##           ######%       ####   ######
+       ###            ######         ###%   %##########%       ######   ######
+       #####%         ######         #####   ########         #######    ######
+       ######%        ######         ######%   #########      ######     #######
+       ######%        ######         ######%    %########    ###########  %######
+       ######%          %###         ######        #######  ############## ######
+       ######%        ##%  #         ######        ######% ###############% ######
+       ######%        #####          #############% #####%%######%           ######
+       ######%        ######         ############### #### #######            %#####%
+       ######%        ######         ################    #######              #######
+         _____                     _ _   __              _      _    _____ _ _
+        / ____|                   | (_) /_/             | |    | |  / ____| (_)
+       | |  __ _   _  __ _ _ __ __| |_  __ _ _ __     __| | ___| | | |    | |_ _ __ ___   __ _
        | | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \   / _` |/ _ \ | | |    | | | '_ ` _ \ / _` |
        | |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | | (_| |
-        \_____|\__,_|\__,_|_|  \__,_|_|\__,_|_| |_|  \__,_|\___|_|  \_____|_|_|_| |_| |_|\__,_|                                                                                     
-        Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt                    
+        \_____|\__,_|\__,_|_|  \__,_|_|\__,_|_| |_|  \__,_|\___|_|  \_____|_|_|_| |_| |_|\__,_|
+        Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt
                   Zoe María Perez Colman      Tomás Spurio
-                  Bautista Andrés Peral                                                                                       
+                  Bautista Andrés Peral
 ''')
 
 # Función para cargar los usuarios desde el archivo ya existente o crear uno nuevo si no existe.
@@ -86,10 +86,15 @@ def validar_contrasena(contrasena):
 # Funcion para registrar un nuevo usuario.
 def registrar_usuario(usuarios):
     print('Registro de usuario')
-    nombre_usuario = input('Nombre de usuario: ').strip()
-    if nombre_usuario in usuarios:
-        print('El usuario ya existe')
-        return
+    nombre_usuario = ""
+    while True:
+        nombre_usuario = input('Nombre de usuario: ').strip()
+        if not nombre_usuario.isalpha():
+            print("El nombre de usuario contiene caracteres inválidos, intente nuevamente.")
+        elif nombre_usuario in usuarios:
+            print('El usuario ya existe, ingrese otro.')
+        else:
+            break
     while True:
         contrasena = input('Contraseña: ')
         valido, mensajes = validar_contrasena(contrasena)
@@ -100,11 +105,11 @@ def registrar_usuario(usuarios):
             continue
         confirmacion = input('Confirme contraseña: ')
         if contrasena != confirmacion:
-            print('Las contraseñas no coinciden')
+            print('Las contraseñas no coinciden, intente nuevamente.')
             continue
         usuarios[nombre_usuario] = encriptar_contrasena(contrasena)
         guardar_usuarios(usuarios)
-        print('Usuario registrado correctamente')
+        print(f'Usuario registrado correctamente. Bienvenido, {nombre_usuario}')
         break
 
 nombre_usuario : str #hice "publica" la variable para poder usar el nombre del usuario en consult weather, ya q  se define en iniciar sesion  me es util
@@ -160,7 +165,7 @@ def menu_de_acceso():
 
 
 #Formatear  unificar los datos de las APIS de clima
-def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open meteo 
+def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open meteo
     current = data.get("current", {})
     temp = current.get("temperature_2m", "N/A")
     wind_speed = current.get("wind_speed_10m", "N/A")
@@ -180,7 +185,7 @@ def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos
         71: "Nieve ligera",
         80: "Chubascos",
         95: "Tormenta"
-       
+
     }
 
     description = weather_descriptions.get(weather_code, "Condición desconocida")
@@ -248,13 +253,13 @@ def Consult_weather(user):
     success, data = apis.get_weather_openweathermap(city_name.casefold())#weather options
     success_ow, data_ow = apis.get_weather_openweathermap(city_name.casefold())
     w1 = format_weather_openmeteo(data,city_name)
-    w2 = {format_weather_report(data_ow,city_name)} 
+    w2 = {format_weather_report(data_ow,city_name)}
 
     if(success and success_ow):
         print(f"""\n
         ╔════════════════════════════════════════════════════════════════╗
-        ║                                                                ║   
-        ║    {format_weather_openmeteo(data,city_name)}                  ║    
+        ║                                                                ║
+        ║    {format_weather_openmeteo(data,city_name)}                  ║
         ║    {format_weather_report(data_ow,city_name)}                  ║
         ╚════════════════════════════════════════════════════════════════╝
     """)
@@ -264,10 +269,10 @@ def Consult_weather(user):
         print(" Error al obtener el clima:", data)
         print(" Error al obtener el clima:", data_ow)
 
-            
-   
 
-    
+
+
+
 def Consult_History():
     entrys = []
     print("""
