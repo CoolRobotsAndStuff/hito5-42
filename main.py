@@ -60,7 +60,7 @@ def cargar_usuarios():
 # Función para guardar los usuarios en el archivo.
 def guardar_usuarios(username, password):
     file_exists = os.path.isfile(ARCHIVO_USUARIOS)
-    with open(ARCHIVO_USUARIOS, 'w', encoding='utf-8') as archivo:
+    with open(ARCHIVO_USUARIOS, 'a', encoding='utf-8') as archivo:
 
         writer = csv.DictWriter(archivo, ["username", "password_simulada"])
 
