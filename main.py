@@ -12,7 +12,8 @@ from operator import itemgetter
 OPENWEATHERMAP_API_KEY = 'key' # Clave de la API de OpenWeatherMap
 GEMINI_API_KEY = 'key' # Clave de la API de Gemini
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
-
+ARCHIVO_HISTORIAL_GLOBAL = 'historial_global.csv'
+usuario_logueado = None
 
 # Banner del programa
 print ('''
@@ -33,9 +34,9 @@ print ('''
          _____                     _ _   __              _      _    _____ _ _
         / ____|                   | (_) /_/             | |    | |  / ____| (_)
        | |  __ _   _  __ _ _ __ __| |_  __ _ _ __     __| | ___| | | |    | |_ _ __ ___   __ _
-       | | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \   / _` |/ _ \ | | |    | | | '_ ` _ \ / _` |
-       | |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | | (_| |
-        \_____|\__,_|\__,_|_|  \__,_|_|\__,_|_| |_|  \__,_|\___|_|  \_____|_|_|_| |_| |_|\__,_|
+       | | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \\   / _` |/ _ \\ | | |    | | | '_ ` _ \\ / _` |
+       | |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | (_| |
+        \\_____|\\__,_|\\__,_|_|  \\__,_|_|\\__,_|_| |_|  \\__,_|\\___|_|  \\_____|_|_|_| |_| |_|\\__,_|
         Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt
                   Zoe María Perez Colman      Tomás Spurio
                   Bautista Andrés Peral
@@ -46,20 +47,27 @@ def cargar_usuarios():
     usuarios = {}
     try:
         with open(ARCHIVO_USUARIOS, 'r', encoding='utf-8') as archivo:
-            for linea in archivo:
-                partes = linea.strip().split(',')
-                if len(partes) == 2:
-                    nombre_usuario, hash_contra = partes
-                    usuarios[nombre_usuario] = hash_contra
+            reader = csv.DictReader(archivo)
+
+            for row in reader:
+                usuario = row["username"]
+                contraseña = row["password_simulada"]
+                usuarios[usuario] = contraseña
     except FileNotFoundError:
         pass
     return usuarios
 
 # Función para guardar los usuarios en el archivo.
-def guardar_usuarios(usuarios):
+def guardar_usuarios(username, password):
+    file_exists = os.path.isfile(ARCHIVO_USUARIOS)
     with open(ARCHIVO_USUARIOS, 'w', encoding='utf-8') as archivo:
-        for nombre_usuario, hash_contra in usuarios.items():
-            archivo.write(nombre_usuario + ',' + hash_contra + '\n')
+
+        writer = csv.DictWriter(archivo, ["username", "password_simulada"])
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow({"username": username, "password_simulada": password})
 
 # Función para encriptar la contraseña usando SHA-256. (no se si lo veran pero suma)
 def encriptar_contrasena(contrasena):
@@ -87,45 +95,46 @@ def validar_contrasena(contrasena):
 def registrar_usuario(usuarios):
     print('Registro de usuario')
     nombre_usuario = ""
+    nombre_usuario = input('Nombre de usuario: ').strip()
+    if not nombre_usuario.isalpha():
+        print("El nombre de usuario contiene caracteres inválidos, intente nuevamente.")
+        return
+    if nombre_usuario in usuarios:
+        print('El usuario ya existe, ingrese otro.')
+        return
     while True:
-        nombre_usuario = input('Nombre de usuario: ').strip()
-        if not nombre_usuario.isalpha():
-            print("El nombre de usuario contiene caracteres inválidos, intente nuevamente.")
-        elif nombre_usuario in usuarios:
-            print('El usuario ya existe, ingrese otro.')
-        else:
-            break
-    while True:
-        contrasena = input('Contraseña: ')
-        valido, mensajes = validar_contrasena(contrasena)
+        contraseña = input('Contraseña: ')
+        valido, mensajes = validar_contrasena(contraseña)
         if not valido:
             print('Contraseña insegura:')
             for msg in mensajes:
                 print(msg)
             continue
         confirmacion = input('Confirme contraseña: ')
-        if contrasena != confirmacion:
+        if contraseña != confirmacion:
             print('Las contraseñas no coinciden, intente nuevamente.')
             continue
-        usuarios[nombre_usuario] = encriptar_contrasena(contrasena)
-        guardar_usuarios(usuarios)
-        print(f'Usuario registrado correctamente. Bienvenido, {nombre_usuario}')
+        usuarios[nombre_usuario] = contraseña
+        guardar_usuarios(nombre_usuario, contraseña)
+        usuario_logueado = nombre_usuario
+        print(f'Usuario registrado correctamente. Bienvenido, {usuario_logueado}')
+        menu_principal()
         break
 
-nombre_usuario : str #hice "publica" la variable para poder usar el nombre del usuario en consult weather, ya q  se define en iniciar sesion  me es util
 # Función para iniciar sesión con un usuario ya registrado.
 def iniciar_sesion(usuarios):
     print('Inicio de sesión')
     nombre_usuario = input('Nombre de usuario: ').strip()
     if nombre_usuario not in usuarios:
-        print('Usuario no registrado')
+        print('Usuario no registrado.')
         return
-    contrasena = input('Contraseña: ')
-    if usuarios[nombre_usuario] == encriptar_contrasena(contrasena):
-        print(f'Bienvenido, {nombre_usuario}!')
+    contraseña = input('Contraseña: ')
+    if usuarios[nombre_usuario] == contraseña:
+        usuario_logueado = nombre_usuario
+        print(f'Bienvenido, {usuario_logueado}!')
         menu_principal()  # Mostrar menú principal tras inicio de sesión correcto
     else:
-        print('Contraseña incorrecta')
+        print('Contraseña incorrecta.')
         while True:
             print("¿Desea intentar de nuevo (1) o volver al menú de inicio (2)?")
             opcion = input("> ").strip()
@@ -162,9 +171,7 @@ def menu_de_acceso():
         else:
             print("{:^80}".format('Opción no válida'))
 
-
-
-#Formatear  unificar los datos de las APIS de clima
+#Formatear unificar los datos de las APIS de clima
 def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open meteo
     current = data.get("current", {})
     temp = current.get("temperature_2m", "N/A")
@@ -185,7 +192,6 @@ def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos
         71: "Nieve ligera",
         80: "Chubascos",
         95: "Tormenta"
-
     }
 
     description = weather_descriptions.get(weather_code, "Condición desconocida")
@@ -226,25 +232,23 @@ def format_weather_report(weather_data: dict) -> str:  #formateo los datos de op
         )
 
 
-def save_weather_summary(username,source: str, city: str, summary: str, filename="historial_global.csv"): #guardo los datos basicamente de las APIs
-    file_exists = os.path.isfile(filename)
+def save_weather_summary(source: str, city: str, summary: str): #guardo los datos basicamente de las APIs
+    file_exists = os.path.isfile(ARCHIVO_HISTORIAL_GLOBAL)
 
-    with open(filename, mode="a", newline='', encoding="utf-8") as file:
-        writer = csv.writer(file)
+    with open(ARCHIVO_HISTORIAL_GLOBAL, mode="a", newline='', encoding="utf-8") as file:
+        writer = csv.DictWriter(file, ["usuario", "ciudad", "fechahora", "temperatura_c", "condicion_clima", "humedad_porcentaje", "viento_kmh"])
 
         # Escribir encabezado si el archivo no existe
         if not file_exists:
-            writer.writerow(["Usuario logueado: {username}"])
-            writer.writerow(["Fuente", "Ciudad", "Resumen"])
+            writer.writeheader()
 
         # Escribir los datos
-        writer.writerow(["Usuario logueado: {username}"])
-        writer.writerow([source, city, summary])
+        pass
+        #writer.writerow({"usuario": usuario_logueado #resto de campos })
 
 #Historial de consultas y consultar el clima
-city_name : str
-def Consult_weather(user):
-    print(f"""
+def consult_weather():
+    print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
         ║ Ingrese el nombre de una ciudad porfavor                                   ║
         ╚════════════════════════════════════════════════════════════════════════════╝
@@ -253,27 +257,23 @@ def Consult_weather(user):
     success, data = apis.get_weather_openweathermap(city_name.casefold())#weather options
     success_ow, data_ow = apis.get_weather_openweathermap(city_name.casefold())
     w1 = format_weather_openmeteo(data,city_name)
-    w2 = {format_weather_report(data_ow,city_name)}
+    w2 = format_weather_report(data_ow)
 
     if(success and success_ow):
         print(f"""\n
         ╔════════════════════════════════════════════════════════════════╗
         ║                                                                ║
         ║    {format_weather_openmeteo(data,city_name)}                  ║
-        ║    {format_weather_report(data_ow,city_name)}                  ║
+        ║    {format_weather_report(data_ow)}                            ║
         ╚════════════════════════════════════════════════════════════════╝
     """)
-        save_weather_summary(user,"openmeteo",city_name, w1 )#guardo los datos obtenidos y formateados de openmeteo
-        save_weather_summary(user,"openweathermap",city_name, w2 )#guardo los datos obtenidos y formateados de openweathermap xd
+        save_weather_summary(usuario_logueado,"openmeteo",city_name, w1 ) #guardo los datos obtenidos y formateados de openmeteo
+        save_weather_summary(usuario_logueado,"openweathermap",city_name, w2 ) #guardo los datos obtenidos y formateados de openweathermap
     else:
         print(" Error al obtener el clima:", data)
         print(" Error al obtener el clima:", data_ow)
 
-
-
-
-
-def Consult_History():
+def consult_history():
     entrys = []
     print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
@@ -281,20 +281,27 @@ def Consult_History():
         ╚════════════════════════════════════════════════════════════════════════════╝
         """)
     city_name = input()
-    with open("historial_global.csv", mode="w", newline='', encoding="utf-8") as file:
-        for row in file:
-            if(row("Usuario logueado" ) == nombre_usuario and row("Ciudad")== city_name):
-                entrys.append(row)
-                entrys.sort(key= itemgetter("Fecha", "Hora"))
+    try:
+        with open("historial_global.csv", mode="w", newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
 
-            if not entrys:
-                print(f" No hay datos para {nombre_usuario} en {city_name}")
-                return
+            for row in reader:
+                if row["usuario"] == usuario_logueado and row["ciudad"] == city_name:
+                    entrys.append(row)
+    except FileNotFoundError:
+        print(f" No hay datos para {usuario_logueado} en {city_name}")
+        return
 
-    print(f"📊 Entradas para {nombre_usuario} en {city_name}:\n")
+    if not entrys:
+        print(f" No hay datos para {usuario_logueado} en {city_name}")
+        return
+
+    print(f"📊 Entradas para {usuario_logueado} en {city_name}:\n")
+    entrys.sort(key=itemgetter("fechahora"))
+
     for e in entrys:
-        print(f" {e['Fecha']}  {e['Hora']}")
-        print(f"{e['Resumen']}\n")
+        # Printear las filas con los datos
+        pass
 
 
 # aca arme el Menú principal para :
@@ -320,9 +327,9 @@ def menu_principal():
         opcion = input("> ").strip()
         if opcion == "1":
             pass  # Consultar Clima Actual y Guardar en Historial Global
-            Consult_weather(nombre_usuario)
+            consult_weather()
         elif opcion == "2":
-            Consult_History(nombre_usuario)
+            consult_history()
             pass  # Ver Mi Historial Personal de Consultas por Ciudad
         elif opcion == "3":
             pass  # Estadísticas Globales de Uso y Exportar Historial Completo
@@ -335,5 +342,6 @@ def menu_principal():
             exit()
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
+
 # Iniciar el programa mostrando el menú de acceso
 menu_de_acceso()
