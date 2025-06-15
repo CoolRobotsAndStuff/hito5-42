@@ -18,7 +18,7 @@ usuario_logueado = None
 #diccionario 
 api_keys = {
     "OPENWEATHERMAP_API_KEY": "key",  # Clave de la API de OpenWeatherMap
-    "GEMINI_API_KEY": "key"
+    "GEMINI_API_KEY": "AIzaSyDmZsXZUMP4pgF6BRXBlFccaDQcF4YAl1Y"
 }
 
 
