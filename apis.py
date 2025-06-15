@@ -5,12 +5,15 @@ from dataclasses import dataclass
 
 def read_env_file(file_path):
     env_vars = {}
-    with open(file_path, 'r') as file:
-        for line in file:
-            line = line.strip()
-            if line and not line.startswith('#'):
-                key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
+    except FileNotFoundError:
+        return {}
     return env_vars
 
 
@@ -167,17 +170,17 @@ def get_weather_openmeteo(place_name: str) -> (bool, Weather):
     wdict_daily = data["daily"]
     weather = Weather(
         description   = weather_code2str[wdict["weather_code"]],
-        temp          = WeatherData(name="Temperatura",          unit="°C", value = wdict["temperature_2m"],),
-        apparent_temp = WeatherData(name="Temperatura aparente", unit="°C", value = wdict["apparent_temperature"],),
-        min_temp      = WeatherData(name="Mínima",               unit="°C", value = wdict_daily["temperature_2m_min"][0],),
-        max_temp      = WeatherData(name="Máxima",               unit="°C", value = wdict_daily["temperature_2m_max"][0],),
-        wind_speed    = WeatherData(name="Viento",               unit="km/h", value = wdict["wind_speed_10m"],),
-        pressure      = WeatherData(name="Presión",              unit="hPa", value = wdict["surface_pressure"],),
-        cloud_cover   = WeatherData(name="Cobertura",            unit="%", value = wdict['cloud_cover'],),
-        humidity      = WeatherData(name="Humedad",              unit="%", value = wdict["relative_humidity_2m"],),
-        precipitation = WeatherData(name="Precipitación",        unit="mm", value = wdict["precipitation"],),
-        rain          = WeatherData(name="Lluvia",               unit="mm", value = wdict["rain"],),
-        snowfall      = WeatherData(name="Nieve",                unit="cm", value = wdict["snowfall"],)
+        temp          = WeatherData(name="🌡️  Temperatura",          unit="°C", value = wdict["temperature_2m"],),
+        apparent_temp = WeatherData(name="🌡️  Temperatura aparente", unit="°C", value = wdict["apparent_temperature"],),
+        min_temp      = WeatherData(name="-  Mínima",               unit="°C", value = wdict_daily["temperature_2m_min"][0],),
+        max_temp      = WeatherData(name="+  Máxima",               unit="°C", value = wdict_daily["temperature_2m_max"][0],),
+        wind_speed    = WeatherData(name="💨 Viento",               unit="km/h", value = wdict["wind_speed_10m"],),
+        pressure      = WeatherData(name="📈 Presión",              unit="hPa", value = wdict["surface_pressure"],),
+        cloud_cover   = WeatherData(name="☁️  Cobertura",            unit="%", value = wdict['cloud_cover'],),
+        humidity      = WeatherData(name="💧 Humedad",              unit="%", value = wdict["relative_humidity_2m"],),
+        precipitation = WeatherData(name="💧 Precipitación",        unit="mm", value = wdict["precipitation"],),
+        rain          = WeatherData(name="💧 Lluvia",               unit="mm", value = wdict["rain"],),
+        snowfall      = WeatherData(name="🌨️  Nieve",                unit="cm", value = wdict["snowfall"],)
     )
     return True, weather
 

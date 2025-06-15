@@ -10,17 +10,10 @@ from datetime import datetime
 from operator import itemgetter
 
 # Declarar Constantes
-OPENWEATHERMAP_API_KEY = 'key' # Clave de la API de OpenWeatherMap
-GEMINI_API_KEY = 'key' # Clave de la API de Gemini
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 ARCHIVO_HISTORIAL_GLOBAL = 'historial_global.csv'
+ENV_FILE='.env'
 usuario_logueado = None
-
-#diccionario 
-api_keys = {
-    "OPENWEATHERMAP_API_KEY": "key",  # Clave de la API de OpenWeatherMap
-    "GEMINI_API_KEY": "key"
-}
 
 
 # Banner del programa
@@ -178,70 +171,9 @@ def menu_de_acceso():
             registrar_usuario(usuarios)
         elif opcion == '3':
             print("Saliendo del programa...")
-            break
+            exit(0)
         else:
             print("{:^80}".format('Opción no válida'))
-
-#Formatear unificar los datos de las APIS de clima
-def format_weather_openmeteo(data: dict, place: str) -> str: #formateo los datos de open mete2
-    current = data.get("current", {})
-    temp = current.get("temperature_2m", "N/A")
-    wind_speed = current.get("wind_speed_10m", "N/A")
-    weather_code = current.get("weather_code", -1)
-    is_day = current.get("is_day", 1)
-
-    # Diccionario básico de códigos del clima
-    weather_descriptions = {
-        0: "Despejado",
-        1: "Mayormente despejado",
-        2: "Parcialmente nublado",
-        3: "Nublado",
-        45: "Niebla",
-        48: "Niebla con escarcha",
-        51: "Llovizna ligera",
-        61: "Lluvia ligera",
-        71: "Nieve ligera",
-        80: "Chubascos",
-        95: "Tormenta"
-    }
-
-    description = weather_descriptions.get(weather_code, "Condición desconocida")
-    sun = "☀️" if is_day else "🌙"
-
-    return (
-        f"{sun} Clima actual en {place}:\n"
-        f"🌡️ Temperatura: {temp} °C\n"
-        f"🌤️ Cielo: {description}\n"
-        f"💨 Viento: {wind_speed} km/h"
-    )
-
-def format_weather_report(weather_data: dict) -> str:  #formateo los datos de open weather ma2
-        name = weather_data.get("name", "Ubicación desconocida")
-        main = weather_data["main"]
-        weather = weather_data["weather"][0]
-        wind = weather_data["wind"]
-
-        temp = main["temp"]
-        feels_like = main["feels_like"]
-        description = weather["description"].capitalize()
-        humidity = main["humidity"]
-        pressure = main["pressure"]
-        wind_speed = wind["speed"]
-        wind_deg = wind.get("deg", 0)
-
-        # Opcional: convertir grados del viento en texto
-        directions = ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"]
-        wind_dir = directions[round(wind_deg / 45) % 8]
-
-        return (
-            f"🌍 Clima actual en {name}:\n"
-            f"🌡️ Temperatura: {temp} °C (se siente como {feels_like} °C)\n"
-            f"🌤️ Cielo: {description}\n"
-            f"💨 Viento: {wind_speed} km/h del {wind_dir}\n"
-            f"💧 Humedad: {humidity}%\n"
-            f"📈 Presión: {pressure} hPa"
-        )
-
 
 def save_weather_summary(city: str, weather: apis.Weather): #guardo los datos basicamente de las APIs
     global usuario_logueado
@@ -371,70 +303,84 @@ def consult_history():
         print("")
 
 
-def Global_Stadistics():
- try:
-    with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
-        reader = csv.DictReader(file)
+def global_statistics():
+    try:
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
 
-        total_consultas = 0
-        temperaturas = []
-        ciudad_consultas = {}
-        climate_conditions = {}
+            total_consultas = 0
+            temperaturas = []
+            ciudad_consultas = {}
+            climate_conditions = {}
 
-        for row in reader:
-            total_consultas += 1
+            for row in reader:
+                total_consultas += 1
 
-            ciudad = row.get("ciudad", "").strip()
-            clima = row.get("condicion_clima", "").strip()
+                ciudad = row.get("ciudad", "").strip()
+                clima = row.get("condicion_clima", "").strip()
 
-            if ciudad:
-                ciudad_consultas[ciudad] = ciudad_consultas.get(ciudad, 0) + 1
-            if clima:
-                climate_conditions[clima] = climate_conditions.get(clima, 0) + 1
+                if ciudad:
+                    ciudad_consultas[ciudad] = ciudad_consultas.get(ciudad, 0) + 1
+                if clima:
+                    climate_conditions[clima] = climate_conditions.get(clima, 0) + 1
 
-            temp_str = row.get("temperatura", "").replace(",", ".").strip()
-            try:
-                temp = float(temp_str)
-                temperaturas.append(temp)
-            except ValueError:
-                pass
+                temp_str = row.get("temperatura", "").replace(",", ".").strip()
+                try:
+                    temp = float(temp_str)
+                    temperaturas.append(temp)
+                except ValueError:
+                    pass
 
-        if not total_consultas:
-            print("No hay datos en el historial.")
-            return
+            if not total_consultas:
+                print("No hay datos en el historial.")
+                return
 
-        ciudad_mas_consultada = max(ciudad_consultas, key=ciudad_consultas.get)
-        promedio_temp = sum(temperaturas) / len(temperaturas) if temperaturas else 0
-
-     
-        print(f"\n Estadísticas Globales:")
-        print(f"Ciudad más consultada: {ciudad_mas_consultada}")
-        print(f"Temperatura promedio: {promedio_temp:.2f}°C")
-        print(f"Total de consultas: {total_consultas}")
+            ciudad_mas_consultada = max(ciudad_consultas, key=ciudad_consultas.get)
+            promedio_temp = sum(temperaturas) / len(temperaturas) if temperaturas else 0
 
         
-        print("\n Número de consultas por ciudad:")
-        ciudad_labels = list(ciudad_consultas.keys())
+            print(f"\n Estadísticas Globales:")
+            print(f"Ciudad más consultada: {ciudad_mas_consultada}")
+            print(f"Temperatura promedio: {promedio_temp:.2f}°C")
+            print(f"Total de consultas: {total_consultas}")
 
-        ciudad_vals = list(ciudad_consultas.values())
+            
+            print("\n Número de consultas por ciudad:")
+            ciudad_labels = list(ciudad_consultas.keys())
 
-        charts.bar(ciudad_vals, ciudad_labels, 6, 4, 5)
+            ciudad_vals = list(ciudad_consultas.values())
 
-        
-        print("\n Distribución de condiciones climáticas:")
-        clima_labels = list(climate_conditions.keys())
+            charts.bar(ciudad_vals, ciudad_labels, 6, 4, 5)
 
-        clima_vals = list(climate_conditions.values())
+            
+            print("\n Distribución de condiciones climáticas:")
+            clima_labels = list(climate_conditions.keys())
 
-        charts.pie(clima_vals, clima_labels, r=1.0)
+            clima_vals = list(climate_conditions.values())
 
- except FileNotFoundError:
-    print("El archivo 'historial_global.csv' no fue encontrado.")
+            charts.pie(clima_vals, clima_labels, r=1.0)
+
+    except FileNotFoundError:
+        print("El archivo 'historial_global.csv' no fue encontrado.")
 
 
-def AI_TIP(env_vars):
+def ask_for_api_key():
+    print("\n\nPara poder usar el consejo de la IA debes generar una llave de gemini. Para hacerlo ve a 'https://aistudio.google.com/apikey', crea una cuenta si es necesario y genera una llave. Luego ingresala aquí.")
+    key = input("Ingresar llave: ")
+    with open(ENV_FILE, "a") as file:
+        file.write(f"\nGEMINI_KEY={key}")
+
+
+def ai_advice():
     global last_request
     global last_city
+
+    env = apis.read_env_file(ENV_FILE)
+    if "GEMINI_KEY" not in env.keys():
+        ask_for_api_key()
+        env = apis.read_env_file(ENV_FILE)
+
+
     print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
         ║ 1 - Utilizar los datos de la última consulta                               ║
@@ -443,26 +389,27 @@ def AI_TIP(env_vars):
     """)
     option = input("Elegí una opción: ").strip()
 
+
     if option == '1':
         if last_request is None:
             print("No hay datos de consulta previa. Por favor realiza una nueva consulta.")
             return
-        w_consult = last_request
-        ok, tip = apis.get_advice_gemini(w_consult, api_key=env_vars.get("GEMINI_API_KEY"))
+        weather = last_request
+        ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
         if ok:
-            print(f"\n Consejo para la ciudad de {last_city}: {tip}")
+            print(f"\n Consejo para la ciudad de {last_city.title()}: {tip}")
         else:
             print(f" Error al obtener consejo: {tip}")
 
     elif option == '2':
         place = input("¿Para qué ciudad querés el consejo?: ").strip()
-        weather = apis.get_weather(place, openweathermap_api_key=env_vars.get("OPENWEATHERMAP_API_KEY"))
+        weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
         if not weather:
             print("No se pudo obtener el clima para esa ciudad.")
             return
         # Guarda la consulta actual para futuras referencias
            
-        ok, tip = apis.get_advice_gemini(weather, api_key=env_vars.get("GEMINI_API_KEY"))
+        ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
         if ok:
             print(f"\n Consejo: {tip}")
         else:
@@ -551,24 +498,19 @@ def menu_principal():
         print("\n{:^80}\n".format("Ingrese la opción deseada:"))
         opcion = input("> ").strip()
         if opcion == "1":
-            pass  # Consultar Clima Actual y Guardar en Historial Global
-            consult_weather()
+            consult_weather() # Consultar Clima Actual y Guardar en Historial Global
         elif opcion == "2":
-            consult_history()
-            pass  # Ver Mi Historial Personal de Consultas por Ciudad
+            consult_history() # Ver Mi Historial Personal de Consultas por Ciudad
         elif opcion == "3":
-            pass  # Estadísticas Globales de Uso y Exportar Historial Completo
-            Global_Stadistics()
+            pass
+            #global_statistics() # Estadísticas Globales de Uso y Exportar Historial Completo
         elif opcion == "4":
-            pass  # Consejo IA: ¿Cómo Me Visto Hoy?
-            env_vars = apis.read_env_file(api_keys)
-            AI_TIP(env_vars)
+            ai_advice() # Consejo IA: ¿Cómo Me Visto Hoy?
         elif opcion == "5":
-            pass  # Acerca De...
-            mostrar_acerca_de()
+            mostrar_acerca_de() # Acerca De...
         elif opcion == "6":
             print("Saliendo del programa...")
-            exit()
+            exit(0)
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
 
