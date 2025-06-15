@@ -8,12 +8,20 @@ import csv
 import os
 from datetime import datetime
 from operator import itemgetter
+
 # Declarar Constantes
 OPENWEATHERMAP_API_KEY = 'key' # Clave de la API de OpenWeatherMap
 GEMINI_API_KEY = 'key' # Clave de la API de Gemini
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 ARCHIVO_HISTORIAL_GLOBAL = 'historial_global.csv'
 usuario_logueado = None
+
+#diccionario 
+api_keys = {
+    "OPENWEATHERMAP_API_KEY": "key",  # Clave de la API de OpenWeatherMap
+    "GEMINI_API_KEY": "key"
+}
+
 
 # Banner del programa
 print ('''
@@ -60,7 +68,7 @@ def cargar_usuarios():
 # Función para guardar los usuarios en el archivo.
 def guardar_usuarios(username, password):
     file_exists = os.path.isfile(ARCHIVO_USUARIOS)
-    with open(ARCHIVO_USUARIOS, 'a', encoding='utf-8') as archivo:
+    with open(ARCHIVO_USUARIOS, 'w', encoding='utf-8') as archivo:
 
         writer = csv.DictWriter(archivo, ["username", "password_simulada"])
 
@@ -170,7 +178,7 @@ def menu_de_acceso():
             registrar_usuario(usuarios)
         elif opcion == '3':
             print("Saliendo del programa...")
-            exit
+            break
         else:
             print("{:^80}".format('Opción no válida'))
 
@@ -258,32 +266,59 @@ def save_weather_summary(city: str, weather: apis.Weather): #guardo los datos ba
             "viento_kmh": weather.wind_speed.value
         })
 
+def mostrar_en_recuadro(texto):
+    lineas = texto.strip().split('\n')
+    largo = max(len(linea) for linea in lineas)
+    borde_superior = '╔' + '═' * (largo + 2) + '╗'
+    borde_medio    = '║ {:<' + str(largo) + '} ║'
+    borde_inferior = '╚' + '═' * (largo + 2) + '╝'
+
+    print(borde_superior)
+    for linea in lineas:
+        print(borde_medio.format(linea))
+    print(borde_inferior)
+
 #Historial de consultas y consultar el clima
+last_request = None
+last_city = None
 def consult_weather():
+    global last_request
+    global last_city
     print("""
         ╔════════════════════════════════════════════════════════════════════════════╗
         ║ Ingrese el nombre de una ciudad porfavor                                   ║
         ╚════════════════════════════════════════════════════════════════════════════╝
             """)
-    city_name = input()
+    city_name = input("Ciudad: ").strip()
+
     try:
-        weather = apis.get_weather(city_name)
-    except: 
-        print(" Error al obtener el clima:", data)
+      weather = apis.get_weather(city_name)
+      
+
+    #Si la API devuelve None o datos vacíos
+      if not weather or isinstance(weather, str):
+        print("No se pudo obtener el clima para esa ciudad. Revise el nombre.")
         return
 
-    print("""\n
-        ╔════════════════════════════════════════════════════════════════╗
-        ║                                                                ║
-        """)
-    print(weather) # TODO formatear bien
+    except Exception as e:
+     print("Error al consultar el clima: Asegurese de introducir el nombre de la ciudad correctamente")
+     return
+
+
+    print(f"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║ Clima Actual de {city_name}                                               ║ 
+╚════════════════════════════════════════════════════════════════════════════╝
+            """) #esa parte del cuadro desfasada hace que se printee bien nose porque si no se imprime un espacio atras xd
+    mostrar_en_recuadro(str(weather))  #ya esta formateado el todo que puso alejandro
 
     print("""\n
-        ║                                                                ║
-        ╚════════════════════════════════════════════════════════════════╝
+
         """)
 
     save_weather_summary(city_name, weather)
+    last_request =  weather
+    last_city = city_name
 
 def consult_history():
     global usuario_logueado
@@ -336,9 +371,110 @@ def consult_history():
         print("")
 
 
-def mostrar_acerca_de():
-    # Aca falta definir el nombre del grupo, pero hay que cambiar el texto sino se rompe el formato
+def Global_Stadistics():
+ try:
+    with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+
+        total_consultas = 0
+        temperaturas = []
+        ciudad_consultas = {}
+        climate_conditions = {}
+
+        for row in reader:
+            total_consultas += 1
+
+            ciudad = row.get("ciudad", "").strip()
+            clima = row.get("condicion_clima", "").strip()
+
+            if ciudad:
+                ciudad_consultas[ciudad] = ciudad_consultas.get(ciudad, 0) + 1
+            if clima:
+                climate_conditions[clima] = climate_conditions.get(clima, 0) + 1
+
+            temp_str = row.get("temperatura", "").replace(",", ".").strip()
+            try:
+                temp = float(temp_str)
+                temperaturas.append(temp)
+            except ValueError:
+                pass
+
+        if not total_consultas:
+            print("No hay datos en el historial.")
+            return
+
+        ciudad_mas_consultada = max(ciudad_consultas, key=ciudad_consultas.get)
+        promedio_temp = sum(temperaturas) / len(temperaturas) if temperaturas else 0
+
+     
+        print(f"\n Estadísticas Globales:")
+        print(f"Ciudad más consultada: {ciudad_mas_consultada}")
+        print(f"Temperatura promedio: {promedio_temp:.2f}°C")
+        print(f"Total de consultas: {total_consultas}")
+
+        
+        print("\n Número de consultas por ciudad:")
+        ciudad_labels = list(ciudad_consultas.keys())
+
+        ciudad_vals = list(ciudad_consultas.values())
+
+        charts.bar(ciudad_vals, ciudad_labels, 6, 4, 5)
+
+        
+        print("\n Distribución de condiciones climáticas:")
+        clima_labels = list(climate_conditions.keys())
+
+        clima_vals = list(climate_conditions.values())
+
+        charts.pie(clima_vals, clima_labels, r=1.0)
+
+ except FileNotFoundError:
+    print("El archivo 'historial_global.csv' no fue encontrado.")
+
+
+def AI_TIP(env_vars):
+    global last_request
+    global last_city
     print("""
+        ╔════════════════════════════════════════════════════════════════════════════╗
+        ║ 1 - Utilizar los datos de la última consulta                               ║
+        ║ 2 - Realizar una nueva consulta para el consejo                            ║
+        ╚════════════════════════════════════════════════════════════════════════════╝
+    """)
+    option = input("Elegí una opción: ").strip()
+
+    if option == '1':
+        if last_request is None:
+            print("No hay datos de consulta previa. Por favor realiza una nueva consulta.")
+            return
+        w_consult = last_request
+        ok, tip = apis.get_advice_gemini(w_consult, api_key=env_vars.get("GEMINI_API_KEY"))
+        if ok:
+            print(f"\n Consejo para la ciudad de {last_city}: {tip}")
+        else:
+            print(f" Error al obtener consejo: {tip}")
+
+    elif option == '2':
+        place = input("¿Para qué ciudad querés el consejo?: ").strip()
+        weather = apis.get_weather(place, openweathermap_api_key=env_vars.get("OPENWEATHERMAP_API_KEY"))
+        if not weather:
+            print("No se pudo obtener el clima para esa ciudad.")
+            return
+        # Guarda la consulta actual para futuras referencias
+           
+        ok, tip = apis.get_advice_gemini(weather, api_key=env_vars.get("GEMINI_API_KEY"))
+        if ok:
+            print(f"\n Consejo: {tip}")
+        else:
+            print(f" Error al obtener consejo: {tip}")
+
+    else:
+        print("Opción inválida. Por favor elige 1 o 2.")
+
+def mostrar_acerca_de():
+    NOMBRE_DE_GRUPO = "Pibes jansons"
+    # Aca falta definir el nombre del grupo, pero hay que cambiar el texto sino se rompe el formato
+    print(f"""
     ╔═════════════════════════════════════════════════════════════════════════════════════════════════╗
     ║                                       ACERCA DE...                                              ║
     ╠═════════════════════════════════════════════════════════════════════════════════════════════════╣
@@ -409,7 +545,7 @@ def menu_principal():
         ║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
         ║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
         ║ 5. Acerca De...                                                            ║
-        ║ 6. Cerrar Sesión                                                           ║
+        ║ 6. Salir                                                                   ║
         ╚════════════════════════════════════════════════════════════════════════════╝
         """)
         print("\n{:^80}\n".format("Ingrese la opción deseada:"))
@@ -422,16 +558,17 @@ def menu_principal():
             pass  # Ver Mi Historial Personal de Consultas por Ciudad
         elif opcion == "3":
             pass  # Estadísticas Globales de Uso y Exportar Historial Completo
+            Global_Stadistics()
         elif opcion == "4":
             pass  # Consejo IA: ¿Cómo Me Visto Hoy?
+            env_vars = apis.read_env_file(api_keys)
+            AI_TIP(env_vars)
         elif opcion == "5":
-            mostrar_acerca_de()
             pass  # Acerca De...
+            mostrar_acerca_de()
         elif opcion == "6":
-            print("Cerrando sesión...")
-            global usuario_logueado
-            usuario_logueado = None
-            return menu_de_acceso()
+            print("Saliendo del programa...")
+            exit()
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
 
