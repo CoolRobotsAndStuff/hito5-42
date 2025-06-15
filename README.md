@@ -1,6 +1,6 @@
 # WeatherBuddy - GuardiánClima ITBA
 
-WeatherBuddy es una aplicación de consola desarrollada por el grupo "WeatherGuardians" del ITBA. Permite consultar el clima actual de cualquier ciudad, guardar un historial global de consultas, generar estadísticas y gráficos, y recibir consejos de vestimenta personalizados mediante IA.
+WeatherBuddy es una aplicación de consola desarrollada por el grupo "{NOMBRE_DE_GRUPO}" del ITBA. Permite consultar el clima actual de cualquier ciudad, guardar un historial global de consultas, generar estadísticas y gráficos, y recibir consejos de vestimenta personalizados mediante IA.
 
 ## ¿Cómo funciona?
 
