@@ -170,7 +170,7 @@ def menu_de_acceso():
             registrar_usuario(usuarios)
         elif opcion == '3':
             print("Saliendo del programa...")
-            break
+            exit
         else:
             print("{:^80}".format('Opción no válida'))
 
@@ -336,7 +336,62 @@ def consult_history():
         print("")
 
 
-
+def mostrar_acerca_de():
+    # Aca falta definir el nombre del grupo, pero hay que cambiar el texto sino se rompe el formato
+    print("""
+    ╔═════════════════════════════════════════════════════════════════════════════════════════════════╗
+    ║                                       ACERCA DE...                                              ║
+    ╠═════════════════════════════════════════════════════════════════════════════════════════════════╣
+    ║    WeatherBuddy - GuardiánClima ITBA                                                            ║  
+    ║                                                                                                 ║           
+    ║    WeatherBuddy es una aplicación desarrollada por el grupo "{NOMBRE_DE_GRUPO}" del ITBA,       ║
+    ║    diseñada para ofrecer información meteorológica precisa, consejos personalizados y           ║
+    ║    estadísticas de uso, todo en una experiencia interactiva y educativa.                        ║
+    ║                                                                                                 ║
+    ║    Descripción de la aplicación:                                                                ║
+    ║    WeatherBuddy permite a los usuarios consultar el clima actual de cualquier ciudad,           ║
+    ║    guardar un historial global de consultas, generar estadísticas y gráficos a partir de        ║
+    ║    los datos recolectados, y recibir consejos de vestimenta personalizados mediante IA.         ║
+    ║                                                                                                 ║
+    ║    Guía de uso de las opciones del menú:                                                        ║
+    ║    - Menú de Acceso: Permite iniciar sesión con un usuario existente o registrar uno nuevo.     ║
+    ║    El registro requiere un nombre de usuario válido y una contraseña segura.                    ║
+    ║    - 1. Consultar Clima Actual y Guardar en Historial Global: Solicita el nombre de una         ║
+    ║    ciudad, obtiene el clima actual desde APIs externas y guarda la consulta en el historial.    ║
+    ║    - 2. Ver Mi Historial Personal de Consultas por Ciudad: Permite revisar el historial de      ║
+    ║    consultas realizadas por el usuario para una ciudad específica.                              ║ 
+    ║    - 3. Estadísticas Globales de Uso y Exportar Historial Completo: Genera estadísticas de      ║
+    ║    uso y permite exportar el historial completo en formato CSV, útil para la creación de        ║
+    ║    gráficos.                                                                                    ║
+    ║    - 4. Consejo IA: ¿Cómo Me Visto Hoy?: Utiliza IA para sugerir vestimenta adecuada según      ║
+    ║    el clima consultado.                                                                         ║
+    ║    - 5. Acerca De...: Muestra esta descripción detallada.                                       ║
+    ║    - 6. Cerrar Sesión: Cierra la sesión y vuelve al menu de inicio                              ║
+    ║                                                                                                 ║
+    ║    Funcionamiento interno:                                                                      ║
+    ║    - Creación de usuarios: El registro de usuarios es simulado y requiere una contraseña que    ║
+    ║    cumpla criterios de seguridad (mínimo 8 caracteres, mayúsculas, minúsculas, dígitos y        ║
+    ║    caracteres especiales). Se recomienda el uso de contraseñas robustas.                        ║
+    ║    - Seguridad: Las credenciales se almacenan de forma simulada e insegura en archivos CSV.     ║
+    ║    Para mayor seguridad, se utiliza hashing (SHA-256) en la función de encriptado, aunque       ║
+    ║    en un entorno real se recomienda el uso de técnicas avanzadas y almacenamiento seguro.       ║
+    ║    - Obtención de datos: El clima se obtiene mediante APIs externas y se almacena en un         ║
+    ║    historial global para cada usuario.                                                          ║
+    ║    - Estadísticas y gráficos: El historial puede exportarse a CSV para su análisis y            ║
+    ║    visualización mediante gráficos.                                                             ║
+    ║    - IA para consejos: Se integra una IA que, en base a los datos meteorológicos, sugiere       ║
+    ║    cómo vestirse apropiadamente.                                                                ║
+    ║                                                                                                 ║
+    ║    Desarrolladores:                                                                             ║
+    ║    - Patricio Aldasoro                                                                          ║
+    ║    - Alejandro De Ugarriza Mohnblatt                                                            ║
+    ║    - Zoe María Perez Colman                                                                     ║
+    ║    - Tomás Spurio                                                                               ║
+    ║    - Bautista Andrés Peral                                                                      ║
+    ║                                                                                                 ║
+    ║    Grupo: {NOMBRE_DE_GRUPO} (Grupo 42)                                                          ║
+    ╚═════════════════════════════════════════════════════════════════════════════════════════════════╝      
+    """)
 
 # aca arme el Menú principal para :
 # consultar el clima,
@@ -354,7 +409,7 @@ def menu_principal():
         ║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
         ║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
         ║ 5. Acerca De...                                                            ║
-        ║ 6. Salir                                                                   ║
+        ║ 6. Cerrar Sesión                                                           ║
         ╚════════════════════════════════════════════════════════════════════════════╝
         """)
         print("\n{:^80}\n".format("Ingrese la opción deseada:"))
@@ -370,6 +425,7 @@ def menu_principal():
         elif opcion == "4":
             pass  # Consejo IA: ¿Cómo Me Visto Hoy?
         elif opcion == "5":
+            mostrar_acerca_de()
             pass  # Acerca De...
         elif opcion == "6":
             print("Cerrando sesión...")
