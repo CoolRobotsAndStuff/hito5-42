@@ -10,7 +10,7 @@ from datetime import datetime
 from operator import itemgetter
 # Declarar Constantes
 OPENWEATHERMAP_API_KEY = 'key' # Clave de la API de OpenWeatherMap
-GEMINI_API_KEY = 'key' # Clave de la API de Gemini
+GEMINI_API_KEY = 'AIzaSyDmZsXZUMP4pgF6BRXBlFccaDQcF4YAl1Y' # Clave de la API de Gemini
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 ARCHIVO_HISTORIAL_GLOBAL = 'historial_global.csv'
 usuario_logueado = None
