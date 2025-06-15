@@ -8,11 +8,13 @@ import csv
 import os
 from datetime import datetime
 from operator import itemgetter
+import shutil
 
 # Declarar Constantes
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
 ARCHIVO_HISTORIAL_GLOBAL = 'historial_global.csv'
 ENV_FILE='.env'
+TIMESTAMP_FORMAT = "%d-%m-%Y %H:%M:%S"
 usuario_logueado = None
 
 
@@ -186,7 +188,7 @@ def save_weather_summary(city: str, weather: apis.Weather): #guardo los datos ba
         if not file_exists:
             writer.writeheader()
 
-        date_time_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        date_time_string = datetime.now().strftime(TIMESTAMP_FORMAT)
         assert(usuario_logueado is not None)
         writer.writerow({
             "usuario": usuario_logueado,
@@ -301,6 +303,165 @@ def consult_history():
         for value in e.values():
             print(f"{value:<{max_column_width}}", end="| ")
         print("")
+
+def clear_screen():
+    print("\033[H\033[J")
+
+def stats_prompt():
+    print("\n\n    Opciones:  1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
+    ipt = ""
+    while True:
+        ipt = input("\n > ")
+        if ipt in ("1", "q"):
+            break
+        elif ipt == "2":
+            show_stats()
+            break
+        elif ipt == "3":
+            show_climate_percents()
+            break
+        elif ipt == "4":
+            show_city_temperatures(0)
+            break
+
+def show_city_temperatures(n):
+    clear_screen()
+    try:
+        city = ""
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            requested_cities = {}
+            for row in reader:
+                if row["ciudad"] not in requested_cities.keys():
+                    requested_cities[row["ciudad"]] = 0
+                requested_cities[row["ciudad"]] += 1
+
+            requested_cities = dict(sorted(requested_cities.items(), key=lambda item: item[1], reverse=True))
+            city = list(requested_cities.keys())[n%len(requested_cities)]
+
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+            terminal_size = shutil.get_terminal_size()
+            print("")
+            print("--------- Temperaturas de Ciudades a Través del Tiempo --------".center(terminal_size.columns))
+            print("\n")
+            print(f"(p) anterior <----- {city.title()} ----> (n) siguiente".center(terminal_size.columns))
+            reader = csv.DictReader(file)
+            temperatures = {}
+            for row in reader:
+                if row["ciudad"] == city:
+                    dt = datetime.strptime(row["fechahora"], TIMESTAMP_FORMAT)
+                    seconds_since_epoch = int(dt.timestamp())
+                    temperatures[seconds_since_epoch] = {
+                        "temp": float(row["temperatura_c"]),
+                        "display_time": row["fechahora"]
+                    }
+
+            temperatures = dict(sorted(temperatures.items()))
+
+
+            ys = [v["temp"] for v in temperatures.values()]
+            xs = [k for k in temperatures.keys()]
+            labels = [v["display_time"] for v in temperatures.values()]
+            if len(ys) <= 1:
+                print("\n"*10)
+                print("Se necesitan por lo menos dos datos de temperatura de cada ciudad para ver las estadísticas.".center(terminal_size.columns))
+                print("\n"*10)
+            else:
+                charts.line(labels, xs, ys, w=80, h=20, div_n=5, vpadding=2)
+
+            width = terminal_size.columns-7
+            if width > 80:
+                width -= 10
+            #charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
+        print("\n\n    Opciones: n - Siguiente   p - Previa")
+        print(  "\n              1 - Salir       2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
+        ipt = ""
+        while True:
+            ipt = input("\n > ")
+            if ipt in ("1", "q"):
+                break
+            elif ipt == "2":
+                show_stats()
+                break
+            elif ipt == "3":
+                show_climate_percents()
+                break
+            elif ipt == "4":
+                show_city_temperatures(n)
+                break
+            elif ipt == "n":
+                show_city_temperatures(n+1)
+                break
+
+            elif ipt == "p":
+                show_city_temperatures(n-1)
+                break
+
+        clear_screen()
+
+    except FileNotFoundError:
+        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        return
+
+def show_climate_percents():
+    clear_screen()
+    try:
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+            terminal_size = shutil.get_terminal_size()
+            print("")
+            print("--------- Porcentajes de Condiciones Climáticas --------".center(terminal_size.columns))
+            print("\n")
+            reader = csv.DictReader(file)
+            requested_weathers = {}
+            for row in reader:
+                if row["condicion_clima"] not in requested_weathers.keys():
+                    requested_weathers[row["condicion_clima"]] = 0
+                requested_weathers[row["condicion_clima"]] += 1
+            
+            width = terminal_size.columns-7
+            if width > 80:
+                width -= 10
+            charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
+
+        stats_prompt()
+
+        clear_screen()
+
+    except FileNotFoundError:
+        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        return
+
+
+def show_stats():
+    clear_screen()
+    try:
+        with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
+            terminal_size = shutil.get_terminal_size()
+            print("--------- Consultas por Ciudad --------".center(terminal_size.columns))
+            print("\n")
+            reader = csv.DictReader(file)
+            requested_cities = {}
+            for row in reader:
+                if row["ciudad"] not in requested_cities.keys():
+                    requested_cities[row["ciudad"]] = 0
+                requested_cities[row["ciudad"]] += 1
+            
+            width = terminal_size.columns-7
+            if width > 80:
+                width -= 10
+            charts.bar(list(requested_cities.values()), list(requested_cities.keys()), width, h=20, div_n=5)
+
+        stats_prompt()
+
+        clear_screen()
+
+
+
+    except FileNotFoundError:
+        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        return
+
+
 
 
 def global_statistics():
@@ -502,8 +663,7 @@ def menu_principal():
         elif opcion == "2":
             consult_history() # Ver Mi Historial Personal de Consultas por Ciudad
         elif opcion == "3":
-            pass
-            #global_statistics() # Estadísticas Globales de Uso y Exportar Historial Completo
+            show_stats() # Estadísticas Globales de Uso y Exportar Historial Completo
         elif opcion == "4":
             ai_advice() # Consejo IA: ¿Cómo Me Visto Hoy?
         elif opcion == "5":
@@ -515,4 +675,5 @@ def menu_principal():
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
 
 # Iniciar el programa mostrando el menú de acceso
-menu_de_acceso()
+if __name__ == "__main__":
+    menu_de_acceso()
