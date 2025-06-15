@@ -1,0 +1,30 @@
+usuario,ciudad,fechahora,temperatura_c,condicion_clima,humedad_porcentaje,viento_kmh
+TomasMelnik,Corrientes,14-06-2025 18:42:02,14.6,Nublado,86,11.8
+melnik,Corrientes,14-06-2025 18:43:46,14.6,Nublado,86,11.8
+Tomas,Corrientes,15-06-2025 00:32:59,12.6,Nublado,91,6.8
+Tomas,Corrientes,15-06-2025 00:43:45,12.4,Parcialmente nublado,95,6.8
+nacho,cacota,15-06-2025 00:59:40,8.6,Niebla,97,5.4
+TOMA,Corrientes,15-06-2025 01:02:49,12.2,Nublado,95,6.7
+TOMA,Salta,15-06-2025 01:03:45,8.9,Nublado,84,2.2
+RANCHERO,Corrientes,15-06-2025 01:13:41,12.2,Nublado,95,6.7
+japatero,Corrientes,15-06-2025 01:17:30,12.2,Nublado,95,6.7
+AJNDN,Corrientes,15-06-2025 01:19:18,12.2,Nublado,95,6.7
+afjafjif,Corrientes,15-06-2025 01:21:58,12.2,Nublado,95,6.7
+afjafjif,Corrientes,15-06-2025 01:22:24,12.2,Nublado,95,6.7
+bautsitapat,Corrientes,15-06-2025 02:02:27,12.4,Nublado,93,7.1
+bautsitapat,Corrientes,15-06-2025 02:02:36,12.4,Nublado,93,7.1
+bautsitapat,Londres,15-06-2025 02:03:32,14.4,Parcialmente nublado,86,7.7
+bautsitapat,Londres,15-06-2025 02:03:37,14.4,Parcialmente nublado,86,7.7
+bautsitapat,Londres,15-06-2025 02:03:42,14.4,Parcialmente nublado,86,7.7
+bautsitapat,Chaco,15-06-2025 02:03:50,10.8,Cielo despejado,90,7.5
+bautsitapat,Chaco,15-06-2025 02:03:57,10.8,Cielo despejado,90,7.5
+Bautista,Corrientes,15-06-2025 02:06:49,12.4,Nublado,93,7.1
+Bautista,Corrientes,15-06-2025 02:06:54,12.4,Nublado,93,7.1
+Bautista,Corrientes,15-06-2025 02:07:00,12.4,Nublado,93,7.1
+Bautista,Londres,15-06-2025 02:07:05,14.4,Parcialmente nublado,86,7.7
+Bautista,Londres,15-06-2025 02:07:10,14.4,Parcialmente nublado,86,7.7
+Bautista,Chaco,15-06-2025 02:07:40,10.8,Cielo despejado,90,7.5
+Bautista,Chaco,15-06-2025 02:07:46,10.8,Cielo despejado,90,7.5
+Bautista,Madrid,15-06-2025 02:07:55,21.0,Nublado,55,2.4
+Bautista,Barcelona,15-06-2025 02:08:19,21.1,Parcialmente nublado,72,6.1
+Bautista,Medellin,15-06-2025 02:08:35,22.0,Nublado,83,2.2

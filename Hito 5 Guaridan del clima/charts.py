@@ -1,0 +1,254 @@
+import time
+from math import atan2, pi, atan, ceil
+import ctypes
+import sys
+import os
+
+colors = [ 
+    #"\033[30m█",  # Black..............
+    "\033[31m█",  # Red                
+    "\033[36m█",  # Cyan               
+    "\033[32m█",  # Green              
+    "\033[35m█",  # Magenta            
+    "\033[33m█",  # Yellow             
+    "\033[34m█",  # Blue               
+    "\033[37m█",  # White              
+    "\033[91m█",  # Bright Red         
+    "\033[92m█",  # Bright Green       
+    "\033[93m█",  # Bright Yellow      
+    "\033[94m█",  # Bright Blue        
+    "\033[95m█",  # Bright Magenta     
+    "\033[96m█",  # Bright Cyan        
+    "\033[97m█"   # Bright White       
+]
+
+
+def windows_enable_unicode_and_ansi():
+    if os.name == 'nt': # for Bimbows
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.GetStdHandle(-11) # STD_OUTPUT_HANDLE
+        mode = ctypes.c_ulong()
+        kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+        kernel32.SetConsoleMode(handle, mode.value | 0x0001 | 0x0004)  # ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+
+        sys.stdout.reconfigure(encoding='utf-8')
+
+def pie(v, labels, r):
+    r = int(r)
+    total = sum(v)
+    if total == 0:
+        print("No hay datos para mostrar en el gráfico.")
+        return
+
+    mult = 1 / total
+    for i in range(len(v)):
+        v[i] *= mult
+
+    def s(k, v, a):
+        if not v:
+            return ' '
+        if a < v[0]:
+            return k[0]
+        return s(k[1:], v[1:], a - v[0])
+
+    i = -2
+    for y in range(-r, max(r, len(v) * 2)):
+        t = ""
+        if y < r:
+            for x in range(-r, r):
+                if x * x + y * y < r * r:
+                    a = atan2(y, x) / pi / 2 + 0.5
+                    t += s(colors, v, a) * 2
+                else:
+                    t += "  "
+        else:
+            t += "  " * r * 2
+
+        if i < len(labels) * 2:
+            if i >= 0 and i % 2 == 0:
+                percentage = v[i // 2] * 100
+                t += "   " + colors[i // 2] + "\033[0m " + f"{percentage:.2f}% " + labels[i // 2]
+            i += 1
+
+        print(t)
+
+    print("\033[0m")
+
+
+def bresenham_line(matrix, width, height, start, end):
+    """Draw a line in the matrix from start to end coordinates using Bresenham's algorithm."""
+    x1, y1 = start
+    x2, y2 = end
+
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    sx = 1 if x1 < x2 else -1
+    sy = 1 if y1 < y2 else -1
+    err = dx - dy
+
+    up_slope = "／"
+    down_slope = "＼"
+    if os.name == 'nt': #compensate for shitty unicode support on windows
+        down_slope = "\\_"
+        up_slope = "_/"
+
+
+    while True:
+        slope = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')
+        
+        char = "xx"
+        err2 = err * 2
+        erry = err
+        if err2 > -dy:
+            err -= dy
+            erry = err
+            x1 += sx
+
+        if err2 < dx:
+            err += dx
+            y1 += sy
+
+        if slope < 0:
+            if err*2 < -dy:
+                char = "__"
+            elif err*2 > dx or err2 > dx:
+                char = "| "
+            else:
+                char = up_slope
+        else:
+            if err2 < -dy:
+                char = "__"
+            elif err*2 > dx or err2 > dx:
+                char = "| "
+            else:
+                char = down_slope
+
+        if 0 <= x1 < height and 0 <= y1 < width:
+            matrix[x1][y1] = "\033[31m" + char + "\033[0m"
+        
+        if x1 == x2 and y1 == y2:
+            break
+        
+
+def line(ys, w, h, div_n):
+    div_h = h // (div_n+1)
+    w //= 2
+    max_y = max(ys)
+    ys = list(map(lambda y: max(ys)-y, ys))
+
+    maxx = w/(len(ys)-1)
+    fy = (h-1)/max(ys)
+
+    ys = list(map(lambda y: round(y*fy), ys))
+
+    screen = []
+
+    for i in range(h):
+        row = []
+        row.append("| ")
+        if i%div_h == 0:
+            if (i == 0):
+                for j in range(w):
+                    row.append("  ")
+            else:
+                for j in range(w):
+                    color = "\033[30m"
+                    if os.name == 'nt':
+                        color = "\033[37m"
+                    row.append(color + "__\033[0m")
+            row.append("|")
+            value = max_y * (1-(i/h))
+            row.append(f"{value:.2f}")
+        else:
+            for j in range(w):
+                row.append("  ")
+            row.append("|")
+        screen.append(row)
+    
+    screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
+    row = ["  "]*w
+    for i in range(0, len(ys)-1):
+        x1 = int(i*maxx) 
+        row[x1] = " |"
+    screen.append(row)
+
+    for index in range(0, len(ys)-1):
+        x1 = round(index*maxx) 
+        x2 = round((index+1)*maxx)
+        y1 = ys[index]
+        y2 = ys[index+1]
+        bresenham_line(screen, w+1, h, (y1, x1), (y2, x2))
+
+    print("__"*(w+1))
+    for y, row in enumerate(screen):
+        r = ""
+        for x, value in enumerate(row):
+            r+=value
+        print(r)
+
+def bar(vals: list, labels: list, w, h, div_n):
+    div_h = max(1, h // (div_n + 1))
+    w //= 2
+    max_y = ceil(max(vals))
+    screen = []
+
+    bar_space = w//len(vals)
+
+    for i in range(h):
+        row = []
+        row.append("| ")
+
+        if i%div_h == 0:
+            
+            color = "\033[30m"
+            if os.name == 'nt':
+                color = "\033[37m"
+            char = "  " if i == 0 else color + "__\033[0m"
+            for j in range(w):
+                row.append(char)
+
+            row.append("|")
+            value = max_y * (1-(i/h))
+            row.append(f"{value:.2f}")
+        else:
+            for j in range(w):
+                row.append("  ")
+            row.append("|")
+
+        screen.append(row)
+
+    screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
+
+    for i, v in enumerate(vals):
+        for x in range(i*bar_space+2, (i+1)*bar_space-2):
+            for y in range(h, int((vals[i]/max_y)*h),-1):
+                screen[y][x+1] = colors[i]*2+"\033[0m"
+
+
+    for y, row in enumerate(screen):
+        for x, value in enumerate(row):
+            print(value, end="")
+        print("")
+
+    print("")
+
+    for i, l in enumerate(labels):
+        print("      " + colors[i] + "\033[0m " + l, end="  "*(bar_space - len(l) - 2))
+    print("")
+
+
+
+if __name__ == "__main__":
+    windows_enable_unicode_and_ansi()
+
+    pie([0.33, 0.33, 0.33], ["My Thing", "Your Thing", "Other Thing"], r=8)
+    
+    print("")
+
+    line(ys=[2, 0.5, 3, 0.1, 2, 5], w=80, h=20, div_n=4)
+
+    print("\n")
+
+    bar([2, 4.5, 3.2, 0.99], labels=["ahhh", "pup", "messi", ":)"], w=80, h=20, div_n=4)
+
+    print("")
