@@ -39,6 +39,8 @@ def pie(v, labels, r):
     for i in range(len(v)):
         v[i] *= mult
 
+    v[-1] += 0.00000001
+
     def s(k,v,a):
         if not v:
             return ' '
@@ -125,16 +127,24 @@ def bresenham_line(matrix, width, height, start, end):
             break
 
 
-def line(ys, w, h, div_n):
+def line(labels, xs, ys, w, h, div_n, vpadding):
     div_h = h // (div_n+1)
     w //= 2
     max_y = max(ys)
-    ys = list(map(lambda y: max(ys)-y, ys))
+    min_y = min(ys)
 
-    maxx = w/(len(ys)-1)
-    fy = (h-1)/max(ys)
+    bottom = min_y - vpadding
+    top = max_y + vpadding
 
-    ys = list(map(lambda y: round(y*fy), ys))
+    fy = 0
+    if max(ys) != 0:
+        fy = (h-1) / (top-bottom)
+
+    ys = list(map(lambda y: round((y-bottom)*fy), ys))
+    ys = list(map(lambda y: round((top-bottom)*fy-y), ys))
+
+    maxx = w/(max(xs))
+    xs = list(map(lambda x: int((x-min(xs)) / (max(xs) - min(xs)) * w), xs))
 
     screen = []
 
@@ -152,7 +162,7 @@ def line(ys, w, h, div_n):
                         color = "\033[37m"
                     row.append(color + "__\033[0m")
             row.append("|")
-            value = max_y * (1-(i/h))
+            value = ((top-bottom) * (1-(i/h))) + bottom 
             row.append(f"{value:.2f}")
         else:
             for j in range(w):
@@ -160,19 +170,44 @@ def line(ys, w, h, div_n):
             row.append("|")
         screen.append(row)
     
-    screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
+    screen.append(["|_"] + ["__"]*w + [f"|{bottom:.2f}"])
     row = ["  "]*w
-    for i in range(0, len(ys)-1):
-        x1 = int(i*maxx) 
-        row[x1] = " |"
+    for x1 in xs[:-1]:
+        row[x1] = "| "
+    row.append("  ")
+    row.append("| ")
+    screen.append(row)
+    spacing = w*2//(len(labels)-1)- len(labels[0])
+
+    while spacing < 1:
+        labels = labels[::2]
+        print(labels)
+        print(spacing)
+        spacing = w*2//(len(labels)-1)- len(labels[0])
+
+    row = [] 
+    row.append("|"+labels[0])
+    previous = len(labels[0])
+    for i, label in enumerate(labels):
+        spacing = (xs[i]*2) - previous
+        if spacing > 2:
+            row.append(" "*(spacing-1))
+            row.append("| "+ label)
+            previous = (xs[i]*2) + len(label)
+
     screen.append(row)
 
     for index in range(0, len(ys)-1):
-        x1 = round(index*maxx) 
-        x2 = round((index+1)*maxx)
+        x1 = xs[index]
+        x2 = xs[index+1]
         y1 = ys[index]
         y2 = ys[index+1]
         bresenham_line(screen, w+1, h, (y1, x1), (y2, x2))
+        if index == 0:
+            screen[y1][x1] = "|x"
+        else:
+            screen[y1][x1] = "xx"
+    screen[y2][x2] = "xx"
 
     print("__"*(w+1))
     for y, row in enumerate(screen):
@@ -215,7 +250,7 @@ def bar(vals: list, labels: list, w, h, div_n):
 
     for i, v in enumerate(vals):
         for x in range(i*bar_space+2, (i+1)*bar_space-2):
-            for y in range(h, int((vals[i]/max_y)*h),-1):
+            for y in range(h, (h-int((vals[i]/max_y)*h)),-1):
                 screen[y][x+1] = colors[i]*2+"\033[0m"
 
 
