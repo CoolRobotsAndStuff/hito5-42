@@ -50,6 +50,7 @@ banner = '''
 | | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \\   / _` |/ _ \\ | | |    | | | '_ ` _ \\ / _` |
 | |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | (_| |
  \\_____|\\__,_|\\__,_|_|  \\__,_|_|\\__,_|_| |_|  \\__,_|\\___|_|  \\_____|_|_|_| |_| |_|\\__,_|
+
  Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt
            Zoe María Perez Colman      Tomás Spurio
            Bautista Andrés Peral
@@ -116,7 +117,7 @@ def registrar_usuario(usuarios):
         press_enter_dialog()
         return
     if nombre_usuario in usuarios:
-        print(center_multiline('El usuario ya existe, ingrese otro.'))
+        print(center_multiline('El usuario ya existe, intente nuevamente.'))
         press_enter_dialog()
         return
     while True:
@@ -270,7 +271,7 @@ def consult_weather():
 
     print(center_multiline(f"""
 ╔════════════════════════════════════════════════════════════════════════════╗
-║ Clima Actual de {city_name:<25}                                  ║ 
+║ Clima Actual de {city_name:<25}                                  ║
 ╚════════════════════════════════════════════════════════════════════════════╝
             """))
     print(center_multiline(str(weather), pad_right=False))
@@ -327,7 +328,7 @@ def consult_history():
             max_column_widths[i] = len(value)
 
     table = ""
-    
+
     table += "| "
     for i, value in enumerate(entries[0].keys()):
         table += f"{value.center(max_column_widths[i])}" + " | "
@@ -335,7 +336,7 @@ def consult_history():
     table += "\n"
 
     for e in entries:
-        table += "| " 
+        table += "| "
         for i, value in enumerate(e.values()):
             padding = max_column_widths[i]
             table += f"{value:<{padding}}" + " | "
@@ -488,12 +489,12 @@ def show_climate_percents():
                 if row["condicion_clima"] not in requested_weathers.keys():
                     requested_weathers[row["condicion_clima"]] = 0
                 requested_weathers[row["condicion_clima"]] += 1
-            
+
             width = terminal_size.columns-7
             if width > 80:
                 width -= 10
             charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
-        
+
         print("    Opciones:\n    v - Ver Gráficos")
         stats_prompt()
         while True:
@@ -544,7 +545,7 @@ def show_stats():
                 if row["ciudad"] not in requested_cities.keys():
                     requested_cities[row["ciudad"]] = 0
                 requested_cities[row["ciudad"]] += 1
-            
+
         width = terminal_size.columns-7
         if width > 80:
             width -= 10
@@ -554,7 +555,7 @@ def show_stats():
         stats_prompt()
         while True:
             ipt = input("\n > ")
-            if ipt == "v": 
+            if ipt == "v":
                 if MATPLOTLIB_SUPPORT:
                     plt.figure(figsize=(12, 6), dpi=300)
                     colors = ['red', 'blue', 'green', 'orange', 'purple', 'cyan', 'magenta', 'yellow']
@@ -622,14 +623,14 @@ def global_statistics():
             ciudad_mas_consultada = max(ciudad_consultas, key=ciudad_consultas.get)
             promedio_temp = sum(temperaturas) / len(temperaturas) if temperaturas else 0
 
-        
+
             print(center_multiline(f"""\n\n\n
 -------- Estadísticas Globales --------
 
      - Ciudad más consultada: {ciudad_mas_consultada.title()}
-     
+
      - Temperatura promedio: {promedio_temp:.2f}°C
-     
+
      - Total de consultas: {total_consultas} """))
 
         print("\n\n    Opciones:\n")
@@ -657,7 +658,7 @@ def ask_for_api_key():
 def center_multiline(text: str, pad_right=True) -> str:
     width = shutil.get_terminal_size().columns
     lines = text.splitlines()
-    
+
     def calculate_line_width(line: str) -> int:
         return len(line)
         return sum(2 if ord(char) > 0x7F else 1 for char in line)
@@ -665,12 +666,12 @@ def center_multiline(text: str, pad_right=True) -> str:
     max_line_width = max(calculate_line_width(line) for line in lines) if lines else 0
 
     left_padding = ((width//2) - (max_line_width//2))
-    
+
     centered_lines = []
-    
+
     for line in lines:
         line_width = calculate_line_width(line)
-        
+
         # Calculate the padding needed to center the line
         right_padding = width - left_padding - line_width
         centered_line = ""
@@ -679,9 +680,9 @@ def center_multiline(text: str, pad_right=True) -> str:
         centered_line += line
         if right_padding > 0 and pad_right:
             centered_line += ' ' * right_padding
-        
+
         centered_lines.append(centered_line)
-    
+
     # Join the centered lines into a single string with newlines
     return '\n'.join(centered_lines)
 
@@ -739,9 +740,9 @@ def ai_advice():
                 press_enter_dialog()
                 return
             # Guarda la consulta actual para futuras referencias
-            
+
             ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
-            clear_screen() 
+            clear_screen()
             terminal_size = shutil.get_terminal_size()
             print(center_multiline(f"\n\n\n------- Clima en {place} --------\n\n"))
             print(center_multiline(str(weather), pad_right=False))
@@ -772,9 +773,9 @@ def mostrar_acerca_de():
     ╔═════════════════════════════════════════════════════════════════════════════════════════════════╗
     ║                                       ACERCA DE...                                              ║
     ╠═════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║    WeatherBuddy - GuardiánClima ITBA                                                            ║  
-    ║                                                                                                 ║           
-    ║    WeatherBuddy es una aplicación desarrollada por el grupo "{NOMBRE_DE_GRUPO}" del ITBA,       ║
+    ║    WeatherBuddy - GuardiánClima ITBA                                                            ║
+    ║                                                                                                 ║
+    ║    WeatherBuddy es una aplicación desarrollada por el grupo "Weather Baddies" del ITBA,         ║
     ║    diseñada para ofrecer información meteorológica precisa, consejos personalizados y           ║
     ║    estadísticas de uso, todo en una experiencia interactiva y educativa.                        ║
     ║                                                                                                 ║
@@ -789,7 +790,7 @@ def mostrar_acerca_de():
     ║    - 1. Consultar Clima Actual y Guardar en Historial Global: Solicita el nombre de una         ║
     ║    ciudad, obtiene el clima actual desde APIs externas y guarda la consulta en el historial.    ║
     ║    - 2. Ver Mi Historial Personal de Consultas por Ciudad: Permite revisar el historial de      ║
-    ║    consultas realizadas por el usuario para una ciudad específica.                              ║ 
+    ║    consultas realizadas por el usuario para una ciudad específica.                              ║
     ║    - 3. Estadísticas Globales de Uso y Exportar Historial Completo: Genera estadísticas de      ║
     ║    uso y permite exportar el historial completo en formato CSV, útil para la creación de        ║
     ║    gráficos.                                                                                    ║
@@ -819,8 +820,8 @@ def mostrar_acerca_de():
     ║    - Tomás Spurio                                                                               ║
     ║    - Bautista Andrés Peral                                                                      ║
     ║                                                                                                 ║
-    ║    Grupo: {NOMBRE_DE_GRUPO} (Grupo 42)                                                          ║
-    ╚═════════════════════════════════════════════════════════════════════════════════════════════════╝      
+    ║    Grupo: Weather Baddies (Grupo 42)                                                            ║
+    ╚═════════════════════════════════════════════════════════════════════════════════════════════════╝
     """)
     press_enter_dialog()
 
