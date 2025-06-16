@@ -714,19 +714,28 @@ def ai_advice():
                 press_enter_dialog()
                 continue
             weather = last_request
-            ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
-            if ok:
-                print(center_multiline(f"\n Consejo para la ciudad de {last_city.title()}: {tip}"))
-            else:
-                print(center_multiline(f"Error al obtener consejo: {tip}"))
+            try:
+                ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
+                if ok:
+                    print(center_multiline(f"\n Consejo para la ciudad de {last_city.title()}: {tip}"))
+                else:
+                    print(center_multiline(f"Error al obtener consejo: {tip}"))
+            except:
+                print(center_multiline(f"Error al obtener consejo, asegúrese de estar conectado a internet."))
             press_enter_dialog()
 
 
         elif option == '2':
             place = input("          ¿Para qué ciudad querés el consejo?: ").strip()
-            weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
-            if not weather:
-                print(center_multiline("No se pudo obtener el clima para esa ciudad."))
+
+            try:
+                weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
+                if not weather:
+                    print(center_multiline("No se pudo obtener el clima para esa ciudad."))
+                    press_enter_dialog()
+                    return
+            except:
+                print(center_multiline(f"Error al obtener consejo, asegúrese de estar conectado a internet y haber escrito correctamente el nombre de la ciudad."))
                 press_enter_dialog()
                 return
             # Guarda la consulta actual para futuras referencias
