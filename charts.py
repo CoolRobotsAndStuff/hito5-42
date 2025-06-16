@@ -217,13 +217,14 @@ def line(labels, xs, ys, w, h, div_n, vpadding):
         print(r)
 
 def bar(vals: list, labels: list, w, h, div_n):
-    div_h = h // (div_n+1)
+    div_h = (h // (div_n-1))
     w //= 2
     max_y = ceil(max(vals))
     screen = []
 
     bar_space = w//len(vals)
-
+    
+    current_div_val = max_y
     for i in range(h):
         row = []
         row.append("| ")
@@ -237,8 +238,8 @@ def bar(vals: list, labels: list, w, h, div_n):
                 row.append(char)
 
             row.append("|")
-            value = max_y * (1-(i/h))
-            row.append(f"{value:.2f}")
+            row.append(f"{current_div_val:.2f}")
+            current_div_val -= (max_y / div_n)
         else:
             for j in range(w):
                 row.append("  ")

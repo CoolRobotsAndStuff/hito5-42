@@ -16,7 +16,7 @@ WeatherBuddy es una aplicación de consola desarrollada por el grupo "{NOMBRE_DE
   - Consulta tu historial de búsquedas por ciudad.
 
 - **Estadísticas y exportación:**
-  - Genera estadísticas globales de uso y exporta el historial completo en formato CSV, útil para crear gráficos.
+  - Genera estadísticas globales de uso, genera gráicos y exporta el historial completo en formato CSV.
 
 - **Consejo IA:**
   - Recibe sugerencias de vestimenta personalizadas según el clima, usando IA (Gemini API).
@@ -34,23 +34,28 @@ WeatherBuddy es una aplicación de consola desarrollada por el grupo "{NOMBRE_DE
 
 1. Clona este repositorio.
 2. Instala Python 3.10+.
-3. Crea un archivo `.env` con tus claves de API:
+3. Instala dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Crea un archivo `.env` con tus claves de API:
    ```
    WEATHER_KEY=tu_clave_openweathermap
    GEMINI_KEY=tu_clave_gemini
    ```
-4. Ejecuta el programa principal:
+5. Ejecuta el programa principal:
    ```bash
    python main.py
    ```
 
 ## Dependencias
-- Python estándar (hashlib, csv, os, datetime, etc.)
+- Matplotlib
+- Librería estándar de Python (hashlib, csv, os, datetime, etc.)
 - Acceso a internet para las APIs
 
 ## Equipo de desarrollo
 - Patricio Aldasoro
-- Alejandro De Ugarriza Mohnblatt
+- Alejandro de Ugarriza Mohnblatt
 - Zoe María Perez Colman
 - Tomás Spurio
 - Bautista Andrés Peral

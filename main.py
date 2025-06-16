@@ -1,6 +1,7 @@
 # Integrar Api's necesarias
 # AYUDA NO SE USAR APIS AAAAAAAAAA
 # Importar las librerías necesarias
+import io
 import hashlib
 import apis as apis
 import charts as charts
@@ -9,6 +10,14 @@ import os
 from datetime import datetime
 from operator import itemgetter
 import shutil
+
+MATPLOTLIB_SUPPORT = True
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    from PIL import Image
+except ImportError:
+    MATPLOTLIB_SUPPORT = False
 
 # Declarar Constantes
 ARCHIVO_USUARIOS = 'usuarios_simulados.csv' # Nombre del archivo para almacenar usuarios y contraseñas
@@ -64,7 +73,7 @@ def cargar_usuarios():
 # Función para guardar los usuarios en el archivo.
 def guardar_usuarios(username, password):
     file_exists = os.path.isfile(ARCHIVO_USUARIOS)
-    with open(ARCHIVO_USUARIOS, 'w', encoding='utf-8') as archivo:
+    with open(ARCHIVO_USUARIOS, 'a', encoding='utf-8') as archivo:
 
         writer = csv.DictWriter(archivo, ["username", "password_simulada"])
 
@@ -169,28 +178,28 @@ def menu_de_acceso():
         print(center_multiline(banner))
         print("")
         input(center_multiline("Presione [Enter] para empezar"))
-
-        clear_screen()
-        print(center_multiline("""
-╔════════════════════════════════════════════════════════════════════════════╗
-║                           MENÚ DE INICIO                                   ║
-╠════════════════════════════════════════════════════════════════════════════╣
-║   1. Iniciar sesión                                                        ║
-║   2. Registrar usuario                                                     ║
-║   3. Salir                                                                 ║
-╚════════════════════════════════════════════════════════════════════════════╝
-        """))
-        print(center_multiline("Ingrese la opción deseada"))
-        opcion = input("         > ").strip()
-        if opcion == '1':
-            iniciar_sesion(usuarios)
-        elif opcion == '2':
-            registrar_usuario(usuarios)
-        elif opcion == '3':
-            print("Saliendo del programa...")
-            exit(0)
-        else:
-            print("{:^80}".format('Opción no válida'))
+        while True:
+            clear_screen()
+            print(center_multiline("""
+    ╔════════════════════════════════════════════════════════════════════════════╗
+    ║                           MENÚ DE INICIO                                   ║
+    ╠════════════════════════════════════════════════════════════════════════════╣
+    ║   1. Iniciar sesión                                                        ║
+    ║   2. Registrar usuario                                                     ║
+    ║   3. Salir                                                                 ║
+    ╚════════════════════════════════════════════════════════════════════════════╝
+            """))
+            print(center_multiline("Ingrese la opción deseada"))
+            opcion = input("         > ").strip()
+            if opcion == '1':
+                iniciar_sesion(usuarios)
+            elif opcion == '2':
+                registrar_usuario(usuarios)
+            elif opcion == '3':
+                print("Saliendo del programa...")
+                exit(0)
+            else:
+                print("{:^80}".format('Opción no válida'))
 
 def save_weather_summary(city: str, weather: apis.Weather): #guardo los datos basicamente de las APIs
     global usuario_logueado
@@ -338,21 +347,21 @@ def clear_screen():
 # TODO show global stats
 # TODO export matplotlib graphics/csv
 def stats_prompt():
-    print("\n\n    Opciones:  1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
-    ipt = ""
-    while True:
-        ipt = input("\n > ")
-        if ipt in ("1", "q"):
-            break
-        elif ipt == "2":
-            show_stats()
-            break
-        elif ipt == "3":
-            show_climate_percents()
-            break
-        elif ipt == "4":
-            show_city_temperatures(0)
-            break
+    print("    1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
+
+def handle_common_stats_input(ipt) -> bool:
+    if ipt in ("1", "q"):
+        return True
+    elif ipt == "2":
+        show_stats()
+        return True
+    elif ipt == "3":
+        show_climate_percents()
+        return True
+    elif ipt == "4":
+        show_city_temperatures(0)
+        return True
+    return False
 
 def show_city_temperatures(n):
     clear_screen()
@@ -369,14 +378,15 @@ def show_city_temperatures(n):
             requested_cities = dict(sorted(requested_cities.items(), key=lambda item: item[1], reverse=True))
             city = list(requested_cities.keys())[n%len(requested_cities)]
 
+        temperatures = {}
+        terminal_size = shutil.get_terminal_size()
+        print("")
+        print("--------- Temperaturas de Ciudades a Través del Tiempo --------".center(terminal_size.columns))
+        print("\n")
+        print(f"(p) Previa <----- {city.title()} ----> (n) Siguiente".center(terminal_size.columns))
+
         with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
-            terminal_size = shutil.get_terminal_size()
-            print("")
-            print("--------- Temperaturas de Ciudades a Través del Tiempo --------".center(terminal_size.columns))
-            print("\n")
-            print(f"(p) Previa <----- {city.title()} ----> (n) Siguiente".center(terminal_size.columns))
             reader = csv.DictReader(file)
-            temperatures = {}
             for row in reader:
                 if row["ciudad"] == city:
                     dt = datetime.strptime(row["fechahora"], TIMESTAMP_FORMAT)
@@ -386,45 +396,67 @@ def show_city_temperatures(n):
                         "display_time": row["fechahora"]
                     }
 
-            temperatures = dict(sorted(temperatures.items()))
+        temperatures = dict(sorted(temperatures.items()))
 
-
-            ys = [v["temp"] for v in temperatures.values()]
-            xs = [k for k in temperatures.keys()]
-            labels = [v["display_time"] for v in temperatures.values()]
-            if len(ys) <= 1:
-                print("\n"*10)
-                print("Se necesitan por lo menos dos datos de temperatura de cada ciudad para ver las estadísticas.".center(terminal_size.columns))
-                print("\n"*10)
-            else:
-                width = terminal_size.columns-7
-                if width > 80:
-                    width -= 30
-                charts.line(labels, xs, ys, w=width, h=20, div_n=5, vpadding=2)
+        ys = [v["temp"] for v in temperatures.values()]
+        xs = [k for k in temperatures.keys()]
+        labels = [v["display_time"] for v in temperatures.values()]
+        if len(ys) <= 1:
+            print("\n"*10)
+            print("Se necesitan por lo menos dos datos de temperatura de cada ciudad para ver las estadísticas.".center(terminal_size.columns))
+            print("\n"*10)
+        else:
+            width = terminal_size.columns-7
+            if width > 80:
+                width -= 30
+            charts.line(labels, xs, ys, w=width, h=20, div_n=5, vpadding=2)
 
             #charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
-        print("\n\n    Opciones: n - Siguiente   p - Previa")
-        print(  "\n              1 - Salir       2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
-        ipt = ""
+        print("\n\n    Opciones:\n    n - Siguiente   p - Previa   v - Ver Gráficos")
+        stats_prompt()
         while True:
             ipt = input("\n > ")
-            if ipt in ("1", "q"):
-                break
-            elif ipt == "2":
-                show_stats()
-                break
-            elif ipt == "3":
-                show_climate_percents()
-                break
-            elif ipt == "4":
-                show_city_temperatures(n)
-                break
-            elif ipt == "n":
+
+            if ipt == "n":
                 show_city_temperatures(n+1)
                 break
 
             elif ipt == "p":
                 show_city_temperatures(n-1)
+                break
+
+            elif ipt == "v":
+                if MATPLOTLIB_SUPPORT:
+                    dates = [datetime.strptime(date, TIMESTAMP_FORMAT) for date in labels]
+
+                    plt.figure(figsize=(12, 6), dpi=300)
+                    plt.plot(dates, ys, marker='o')
+                    plt.title(f'Temperaturas en {city.title()} a través del tiempo')
+                    plt.xlabel('Fecha y Hora')
+                    plt.ylabel('Temperatura en Celcius')
+                    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(TIMESTAMP_FORMAT))
+
+                    plt.ylim(min(ys) - 2, max(ys) + 2)
+                    plt.xticks(rotation=15)
+
+                    plt.grid()
+                    try:
+                        plt.show(True)
+                    except:
+                        with io.BytesIO() as buf:
+                            plt.savefig(buf, format='png')
+                            buf.seek(0)
+                            Image.open(buf).show("chart")
+                else:
+                    clear_screen()
+                    print(center_multiline("\n\n\nNo se pueden mostar gráfios, la librería matplotlib no está instalada.\nInstálela con 'pip install matplotlib'"))
+                    press_enter_dialog()
+
+                show_city_temperatures(n)
+                return
+
+
+            elif handle_common_stats_input(ipt):
                 break
 
         clear_screen()
@@ -437,13 +469,13 @@ def show_city_temperatures(n):
 def show_climate_percents():
     clear_screen()
     try:
+        terminal_size = shutil.get_terminal_size()
+        print("")
+        print("--------- Porcentajes de Condiciones Climáticas --------".center(terminal_size.columns))
+        print("\n")
+        requested_weathers = {}
         with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
-            terminal_size = shutil.get_terminal_size()
-            print("")
-            print("--------- Porcentajes de Condiciones Climáticas --------".center(terminal_size.columns))
-            print("\n")
             reader = csv.DictReader(file)
-            requested_weathers = {}
             for row in reader:
                 if row["condicion_clima"] not in requested_weathers.keys():
                     requested_weathers[row["condicion_clima"]] = 0
@@ -453,8 +485,35 @@ def show_climate_percents():
             if width > 80:
                 width -= 10
             charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
-
+        
+        print("    Opciones:\n    v - Ver Gráficos")
         stats_prompt()
+        while True:
+            ipt = input("\n > ")
+
+            if ipt == "v":
+                if MATPLOTLIB_SUPPORT:
+                    plt.figure(dpi=300)
+                    plt.pie(list(requested_weathers.values()), labels=list(requested_weathers.keys()))
+                    plt.axis('equal')
+                    try:
+                        plt.show(True)
+                    except:
+                        with io.BytesIO() as buf:
+                            plt.savefig(buf, format='png')
+                            buf.seek(0)
+                            Image.open(buf).show("chart")
+
+                else:
+                    clear_screen()
+                    print(center_multiline("\n\n\nNo se pueden mostar gráfios, la librería matplotlib no está instalada.\nInstálela con 'pip install matplotlib'"))
+                    press_enter_dialog()
+
+                show_climate_percents()
+                return
+
+            elif handle_common_stats_input(ipt):
+                break
 
         clear_screen()
 
@@ -467,23 +526,50 @@ def show_climate_percents():
 def show_stats():
     clear_screen()
     try:
+        terminal_size = shutil.get_terminal_size()
+        print("--------- Consultas por Ciudad --------".center(terminal_size.columns))
+        print("\n")
+        requested_cities = {}
         with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
-            terminal_size = shutil.get_terminal_size()
-            print("--------- Consultas por Ciudad --------".center(terminal_size.columns))
-            print("\n")
             reader = csv.DictReader(file)
-            requested_cities = {}
             for row in reader:
                 if row["ciudad"] not in requested_cities.keys():
                     requested_cities[row["ciudad"]] = 0
                 requested_cities[row["ciudad"]] += 1
             
-            width = terminal_size.columns-7
-            if width > 80:
-                width -= 10
-            charts.bar(list(requested_cities.values()), list(requested_cities.keys()), width, h=20, div_n=5)
+        width = terminal_size.columns-7
+        if width > 80:
+            width -= 10
+        print(list(requested_cities.values()))
+        charts.bar(list(requested_cities.values()), list(requested_cities.keys()), width, h=20, div_n=6)
 
+        print("\n\n    Opciones:\n    v - Ver Gráficos")
         stats_prompt()
+        while True:
+            ipt = input("\n > ")
+            if ipt == "v": 
+                if MATPLOTLIB_SUPPORT:
+                    plt.figure(figsize=(12, 6), dpi=300)
+                    colors = ['red', 'blue', 'green', 'orange', 'purple', 'cyan', 'magenta', 'yellow']
+                    plt.bar(list(requested_cities.keys()), list(requested_cities.values()), color=colors)
+                    plt.xticks(rotation=20)
+                    try:
+                        plt.show(True)
+                    except:
+                        with io.BytesIO() as buf:
+                            plt.savefig(buf, format='png')
+                            buf.seek(0)
+                            Image.open(buf).show("chart")
+
+                else:
+                    clear_screen()
+                    print(center_multiline("\n\n\nNo se pueden mostar gráfios, la librería matplotlib no está instalada.\nInstálela con 'pip install matplotlib'"))
+                    press_enter_dialog()
+                show_stats()
+                return
+
+            elif handle_common_stats_input(ipt):
+                break
 
         clear_screen()
 
