@@ -248,7 +248,8 @@ def consult_weather():
 ║ Ingrese el nombre de una ciudad porfavor                                   ║
 ╚════════════════════════════════════════════════════════════════════════════╝
     """))
-    city_name = input("          Ciudad: ").strip()
+    city_name = input("          Ciudad: ")
+    city_name = normalize_city_name(city_name)
 
     clear_screen()
 
@@ -280,6 +281,9 @@ def consult_weather():
     last_request =  weather
     last_city = city_name
 
+def normalize_city_name(name):
+    return name.strip().lower()
+
 # TODO show available cities
 def consult_history():
     clear_screen()
@@ -296,7 +300,7 @@ def consult_history():
             reader = csv.DictReader(file)
 
             for row in reader:
-                if row["usuario"] == usuario_logueado and row["ciudad"] == city_name:
+                if row["usuario"] == usuario_logueado and row["ciudad"] == normalize_city_name(city_name):
                     entries.append(row)
     except FileNotFoundError:
         print(f" No hay datos para {usuario_logueado} en {city_name}")
@@ -308,7 +312,7 @@ def consult_history():
         press_enter_dialog()
         return
 
-    print(center_multiline(f"📊 Entradas para {usuario_logueado} en {city_name}:\n"))
+    print(center_multiline(f"📊 Entradas para {usuario_logueado} en {normalize_city_name(city_name).title()}:\n"))
     entries.sort(key=itemgetter("fechahora"))
 
     max_column_widths = [0]*len(entries[0].keys())
@@ -347,7 +351,7 @@ def clear_screen():
 # TODO show global stats
 # TODO export matplotlib graphics/csv
 def stats_prompt():
-    print("    1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
+    print("    1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad\n    5 - Estadísticas globales")
 
 def handle_common_stats_input(ipt) -> bool:
     if ipt in ("1", "q"):
@@ -361,6 +365,10 @@ def handle_common_stats_input(ipt) -> bool:
     elif ipt == "4":
         show_city_temperatures(0)
         return True
+    elif ipt == "5":
+        global_statistics()
+        return True
+
     return False
 
 def show_city_temperatures(n):
@@ -540,8 +548,7 @@ def show_stats():
         width = terminal_size.columns-7
         if width > 80:
             width -= 10
-        print(list(requested_cities.values()))
-        charts.bar(list(requested_cities.values()), list(requested_cities.keys()), width, h=20, div_n=6)
+        charts.bar(list(requested_cities.values()), list(k.title() for k in requested_cities.keys()), width, h=20, div_n=6)
 
         print("\n\n    Opciones:\n    v - Ver Gráficos")
         stats_prompt()
@@ -581,6 +588,7 @@ def show_stats():
 
 def global_statistics():
     try:
+        clear_screen()
         with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
 
@@ -600,7 +608,7 @@ def global_statistics():
                 if clima:
                     climate_conditions[clima] = climate_conditions.get(clima, 0) + 1
 
-                temp_str = row.get("temperatura", "").replace(",", ".").strip()
+                temp_str = row.get("temperatura_c", "").replace(",", ".").strip()
                 try:
                     temp = float(temp_str)
                     temperaturas.append(temp)
@@ -615,26 +623,22 @@ def global_statistics():
             promedio_temp = sum(temperaturas) / len(temperaturas) if temperaturas else 0
 
         
-            print(f"\n Estadísticas Globales:")
-            print(f"Ciudad más consultada: {ciudad_mas_consultada}")
-            print(f"Temperatura promedio: {promedio_temp:.2f}°C")
-            print(f"Total de consultas: {total_consultas}")
+            print(center_multiline(f"""\n\n\n
+-------- Estadísticas Globales --------
 
-            
-            print("\n Número de consultas por ciudad:")
-            ciudad_labels = list(ciudad_consultas.keys())
+     - Ciudad más consultada: {ciudad_mas_consultada.title()}
+     
+     - Temperatura promedio: {promedio_temp:.2f}°C
+     
+     - Total de consultas: {total_consultas} """))
 
-            ciudad_vals = list(ciudad_consultas.values())
+        print("\n\n    Opciones:\n")
+        stats_prompt()
+        while True:
+            ipt = input("\n > ")
 
-            charts.bar(ciudad_vals, ciudad_labels, 6, 4, 5)
-
-            
-            print("\n Distribución de condiciones climáticas:")
-            clima_labels = list(climate_conditions.keys())
-
-            clima_vals = list(climate_conditions.values())
-
-            charts.pie(clima_vals, clima_labels, r=1.0)
+            if handle_common_stats_input(ipt):
+                break
 
     except FileNotFoundError:
         print("El archivo 'historial_global.csv' no fue encontrado.")
@@ -817,6 +821,9 @@ def mostrar_acerca_de():
 # generar estadísticas globales
 # ofrecer consejos de vestimenta mediante IA.
 def menu_principal():
+    global usuario_logueado
+    global last_city
+    global last_request
     while True:
         clear_screen()
         print(center_multiline("""
@@ -828,7 +835,8 @@ def menu_principal():
 ║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
 ║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
 ║ 5. Acerca De...                                                            ║
-║ 6. Salir                                                                   ║
+║ 6. Cerrar sesión                                                           ║
+║ 7. Salir                                                                   ║
 ╚════════════════════════════════════════════════════════════════════════════╝
         """))
         print(center_multiline("Ingrese la opción deseada"))
@@ -844,6 +852,12 @@ def menu_principal():
         elif opcion == "5":
             mostrar_acerca_de() # Acerca De...
         elif opcion == "6":
+            usuario_logueado = None
+            last_request = None
+            last_city = None
+            menu_de_acceso()
+            return
+        elif opcion == "7":
             print("Saliendo del programa...")
             exit(0)
         else:

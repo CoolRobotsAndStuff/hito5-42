@@ -181,8 +181,6 @@ def line(labels, xs, ys, w, h, div_n, vpadding):
 
     while spacing < 1:
         labels = labels[::2]
-        print(labels)
-        print(spacing)
         spacing = w*2//(len(labels)-1)- len(labels[0])
 
     row = [] 
