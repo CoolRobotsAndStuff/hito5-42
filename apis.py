@@ -44,8 +44,8 @@ class Weather:
     snowfall:      WeatherData
 
     def __repr__(self):
-        ret = ""
-        for field in self.__dataclass_fields__.values():
+        ret = self.description + "\n\n"
+        for field in list(self.__dataclass_fields__.values())[1:]:
             ret +="\n" + str(getattr(self, field.name))
         return ret
 

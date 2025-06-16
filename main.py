@@ -19,31 +19,31 @@ usuario_logueado = None
 
 
 # Banner del programa
-print ('''
-       ######% #################     ################%              %#####
-       ######% ###################    %################%             ######
-         ####% #####################    ################%             #####%
-           ##%        ######             ##       #######        ##    #####%
-                      ######         ##           ######%       ####   ######
-       ###            ######         ###%   %##########%       ######   ######
-       #####%         ######         #####   ########         #######    ######
-       ######%        ######         ######%   #########      ######     #######
-       ######%        ######         ######%    %########    ###########  %######
-       ######%          %###         ######        #######  ############## ######
-       ######%        ##%  #         ######        ######% ###############% ######
-       ######%        #####          #############% #####%%######%           ######
-       ######%        ######         ############### #### #######            %#####%
-       ######%        ######         ################    #######              #######
-         _____                     _ _   __              _      _    _____ _ _
-        / ____|                   | (_) /_/             | |    | |  / ____| (_)
-       | |  __ _   _  __ _ _ __ __| |_  __ _ _ __     __| | ___| | | |    | |_ _ __ ___   __ _
-       | | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \\   / _` |/ _ \\ | | |    | | | '_ ` _ \\ / _` |
-       | |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | (_| |
-        \\_____|\\__,_|\\__,_|_|  \\__,_|_|\\__,_|_| |_|  \\__,_|\\___|_|  \\_____|_|_|_| |_| |_|\\__,_|
-        Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt
-                  Zoe María Perez Colman      Tomás Spurio
-                  Bautista Andrés Peral
-''')
+banner = '''
+######% #################     ################%              %#####
+######% ###################    %################%             ######
+  ####% #####################    ################%             #####%
+    ##%        ######             ##       #######        ##    #####%
+               ######         ##           ######%       ####   ######
+###            ######         ###%   %##########%       ######   ######
+#####%         ######         #####   ########         #######    ######
+######%        ######         ######%   #########      ######     #######
+######%        ######         ######%    %########    ###########  %######
+######%          %###         ######        #######  ############## ######
+######%        ##%  #         ######        ######% ###############% ######
+######%        #####          #############% #####%%######%           ######
+######%        ######         ############### #### #######            %#####%
+######%        ######         ################    #######              #######
+  _____                     _ _   __              _      _    _____ _ _
+ / ____|                   | (_) /_/             | |    | |  / ____| (_)
+| |  __ _   _  __ _ _ __ __| |_  __ _ _ __     __| | ___| | | |    | |_ _ __ ___   __ _
+| | |_ | | | |/ _` | '__/ _` | |/ _` | '_ \\   / _` |/ _ \\ | | |    | | | '_ ` _ \\ / _` |
+| |__| | |_| | (_| | | | (_| | | (_| | | | | | (_| |  __/ | | |____| | | | | | | | (_| |
+ \\_____|\\__,_|\\__,_|_|  \\__,_|_|\\__,_|_| |_|  \\__,_|\\___|_|  \\_____|_|_|_| |_| |_|\\__,_|
+ Grupo 42: Patricio Aldasoro           Alejandro De Ugarriza Mohnblatt
+           Zoe María Perez Colman      Tomás Spurio
+           Bautista Andrés Peral
+'''
 
 # Función para cargar los usuarios desde el archivo ya existente o crear uno nuevo si no existe.
 def cargar_usuarios():
@@ -96,77 +96,91 @@ def validar_contrasena(contrasena):
 
 # Funcion para registrar un nuevo usuario.
 def registrar_usuario(usuarios):
+    clear_screen()
     global usuario_logueado
-    print('Registro de usuario')
+    print(center_multiline('----- Registro de usuario -----'))
     nombre_usuario = ""
-    nombre_usuario = input('Nombre de usuario: ').strip()
+    nombre_usuario = input('          Nombre de usuario: ').strip()
     if not nombre_usuario.isalpha():
-        print("El nombre de usuario contiene caracteres inválidos, intente nuevamente.")
+        print(center_multiline("El nombre de usuario contiene caracteres inválidos, intente nuevamente."))
+        press_enter_dialog()
         return
     if nombre_usuario in usuarios:
-        print('El usuario ya existe, ingrese otro.')
+        print(center_multiline('El usuario ya existe, ingrese otro.'))
+        press_enter_dialog()
         return
     while True:
-        contraseña = input('Contraseña: ')
+        contraseña = input('          Contraseña: ')
         valido, mensajes = validar_contrasena(contraseña)
         if not valido:
-            print('Contraseña insegura:')
+            print('          Contraseña insegura:')
             for msg in mensajes:
+                print(" "*10, end="")
                 print(msg)
             continue
-        confirmacion = input('Confirme contraseña: ')
+        confirmacion = input('          Confirme contraseña: ')
         if contraseña != confirmacion:
-            print('Las contraseñas no coinciden, intente nuevamente.')
+            print('          Las contraseñas no coinciden, intente nuevamente.')
             continue
         usuarios[nombre_usuario] = contraseña
         guardar_usuarios(nombre_usuario, contraseña)
         usuario_logueado = nombre_usuario
-        print(f'Usuario registrado correctamente. Bienvenido, {usuario_logueado}')
+        clear_screen()
+        print(f'Usuario registrado correctamente. Bienvenido, {usuario_logueado}! \n')
         menu_principal()
         break
 
 # Función para iniciar sesión con un usuario ya registrado.
 def iniciar_sesion(usuarios):
+    clear_screen()
     global usuario_logueado
-    print('Inicio de sesión')
-    nombre_usuario = input('Nombre de usuario: ').strip()
+    print("\n\n")
+    print(center_multiline('------ Inicio de sesión ------'))
+    nombre_usuario = input('\n\n          Nombre de usuario: ').strip()
     if nombre_usuario not in usuarios:
-        print('Usuario no registrado.')
+        print('Usuario no registrado. Por favor revise el nombre de usuario y vuelva a intentar o registre un nuevo usuario.')
+        press_enter_dialog()
         return
-    contraseña = input('Contraseña: ')
+    contraseña = input('          Contraseña: ')
     if usuarios[nombre_usuario] == contraseña:
         usuario_logueado = nombre_usuario
-        print("usuario_logueado", usuario_logueado)
-        print(f'Bienvenido, {usuario_logueado}!')
+        clear_screen()
+        print(center_multiline(f'Bienvenido, {usuario_logueado}!'))
         menu_principal()  # Mostrar menú principal tras inicio de sesión correcto
     else:
-        print('Contraseña incorrecta.')
+        print(center_multiline('Contraseña incorrecta.'))
         while True:
-            print("¿Desea intentar de nuevo (1) o volver al menú de inicio (2)?")
-            opcion = input("> ").strip()
+            print(center_multiline("¿Desea intentar de nuevo (1) o volver al menú de inicio (2)?"))
+            opcion = input("          > ").strip()
             if opcion == '1':
                 return iniciar_sesion(usuarios)
             elif opcion == '2':
                 return  # Vuelve al menú de acceso (menu_de_acceso)
             else:
-                print("Opción no válida. Ingrese 1 para reintentar o 2 para volver al menú de acceso.")
+                print(center_multiline("Opción no válida. Ingrese 1 para reintentar o 2 para volver al menú de acceso."))
 
 # Menu de inicio pre-registro.
 # De aca se va al menu principal
 def menu_de_acceso():
     usuarios = cargar_usuarios()
     while True:
-        print("""
-        ╔════════════════════════════════════════════════════════════════════════════╗
-        ║                           MENÚ DE INICIO                                   ║
-        ╠════════════════════════════════════════════════════════════════════════════╣
-        ║   1. Iniciar sesión                                                        ║
-        ║   2. Registrar usuario                                                     ║
-        ║   3. Salir                                                                 ║
-        ╚════════════════════════════════════════════════════════════════════════════╝
-        """)
-        print("\n{:^80}\n".format("Ingrese la opción deseada:"))
-        opcion = input("> ").strip()
+        clear_screen()
+        print(center_multiline(banner))
+        print("")
+        input(center_multiline("Presione [Enter] para empezar"))
+
+        clear_screen()
+        print(center_multiline("""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                           MENÚ DE INICIO                                   ║
+╠════════════════════════════════════════════════════════════════════════════╣
+║   1. Iniciar sesión                                                        ║
+║   2. Registrar usuario                                                     ║
+║   3. Salir                                                                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
+        """))
+        print(center_multiline("Ingrese la opción deseada"))
+        opcion = input("         > ").strip()
         if opcion == '1':
             iniciar_sesion(usuarios)
         elif opcion == '2':
@@ -216,53 +230,56 @@ def mostrar_en_recuadro(texto):
 last_request = None
 last_city = None
 def consult_weather():
+    clear_screen()
     global last_request
     global last_city
-    print("""
-        ╔════════════════════════════════════════════════════════════════════════════╗
-        ║ Ingrese el nombre de una ciudad porfavor                                   ║
-        ╚════════════════════════════════════════════════════════════════════════════╝
-            """)
-    city_name = input("Ciudad: ").strip()
+    print(center_multiline("""
+╔════════════════════════════════════════════════════════════════════════════╗
+║ Ingrese el nombre de una ciudad porfavor                                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
+    """))
+    city_name = input("          Ciudad: ").strip()
+
+    clear_screen()
 
     try:
-      weather = apis.get_weather(city_name)
-      
+        weather = apis.get_weather(city_name)
 
-    #Si la API devuelve None o datos vacíos
-      if not weather or isinstance(weather, str):
-        print("No se pudo obtener el clima para esa ciudad. Revise el nombre.")
-        return
+        #Si la API devuelve None o datos vacíos
+        if not weather or isinstance(weather, str):
+            print("No se pudo obtener el clima para esa ciudad. Revise el nombre.")
+            press_enter_dialog()
+            return
 
     except Exception as e:
-     print("Error al consultar el clima: Asegurese de introducir el nombre de la ciudad correctamente")
-     return
+        print("Error al consultar el clima: Asegurese de introducir el nombre de la ciudad correctamente")
+        press_enter_dialog()
+        return
 
 
-    print(f"""
+    print(center_multiline(f"""
 ╔════════════════════════════════════════════════════════════════════════════╗
-║ Clima Actual de {city_name}                                               ║ 
+║ Clima Actual de {city_name:<25}                                  ║ 
 ╚════════════════════════════════════════════════════════════════════════════╝
-            """) #esa parte del cuadro desfasada hace que se printee bien nose porque si no se imprime un espacio atras xd
-    mostrar_en_recuadro(str(weather))  #ya esta formateado el todo que puso alejandro
-
-    print("""\n
-
-        """)
+            """))
+    print(center_multiline(str(weather), pad_right=False))
+    print("\n")
+    press_enter_dialog()
 
     save_weather_summary(city_name, weather)
     last_request =  weather
     last_city = city_name
 
 def consult_history():
+    clear_screen()
     global usuario_logueado
     entries = []
-    print("""
-        ╔════════════════════════════════════════════════════════════════════════════╗
-        ║ Ingrese el nombre de una ciudad porfavor                                   ║
-        ╚════════════════════════════════════════════════════════════════════════════╝
-        """)
-    city_name = input()
+    print(center_multiline("""
+╔════════════════════════════════════════════════════════════════════════════╗
+║ Ingrese el nombre de una ciudad porfavor                                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
+        """))
+    city_name = input("          > ")
     try:
         with open("historial_global.csv", mode="r", newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
@@ -272,37 +289,46 @@ def consult_history():
                     entries.append(row)
     except FileNotFoundError:
         print(f" No hay datos para {usuario_logueado} en {city_name}")
+        press_enter_dialog()
         return
 
     if not entries:
         print(f" No hay datos para {usuario_logueado} en {city_name}")
+        press_enter_dialog()
         return
 
-    print(f"📊 Entradas para {usuario_logueado} en {city_name}:\n")
+    print(center_multiline(f"📊 Entradas para {usuario_logueado} en {city_name}:\n"))
     entries.sort(key=itemgetter("fechahora"))
 
-    max_column_width = 0
+    max_column_widths = [0]*len(entries[0].keys())
 
     for row in entries:
-        for value in row.values():
-            if len(value) > max_column_width:
-                max_column_width = len(value)
+        for i, value in enumerate(row.values()):
+            if len(value) > max_column_widths[i]:
+                max_column_widths[i] = len(value)
 
-    for value in entries[0].keys():
-        if len(value) > max_column_width:
-            max_column_width = len(value)
+    for i, value in enumerate(entries[0].keys()):
+        if len(value) > max_column_widths[i]:
+            max_column_widths[i] = len(value)
+
+    table = ""
     
-    print("| ", end="")
-    for value in entries[0].keys():
-        print(f"{value.center(max_column_width)}",  end="| ")
+    table += "| "
+    for i, value in enumerate(entries[0].keys()):
+        table += f"{value.center(max_column_widths[i])}" + " | "
 
-    print("")
+    table += "\n"
 
     for e in entries:
-        print("| ", end="")
-        for value in e.values():
-            print(f"{value:<{max_column_width}}", end="| ")
-        print("")
+        table += "| " 
+        for i, value in enumerate(e.values()):
+            padding = max_column_widths[i]
+            table += f"{value:<{padding}}" + " | "
+        table += "\n"
+
+    print(center_multiline(table, pad_right=False))
+
+    press_enter_dialog()
 
 def clear_screen():
     print("\033[H\033[J")
@@ -344,7 +370,7 @@ def show_city_temperatures(n):
             print("")
             print("--------- Temperaturas de Ciudades a Través del Tiempo --------".center(terminal_size.columns))
             print("\n")
-            print(f"(p) anterior <----- {city.title()} ----> (n) siguiente".center(terminal_size.columns))
+            print(f"(p) Previa <----- {city.title()} ----> (n) Siguiente".center(terminal_size.columns))
             reader = csv.DictReader(file)
             temperatures = {}
             for row in reader:
@@ -367,11 +393,11 @@ def show_city_temperatures(n):
                 print("Se necesitan por lo menos dos datos de temperatura de cada ciudad para ver las estadísticas.".center(terminal_size.columns))
                 print("\n"*10)
             else:
-                charts.line(labels, xs, ys, w=80, h=20, div_n=5, vpadding=2)
+                width = terminal_size.columns-7
+                if width > 80:
+                    width -= 30
+                charts.line(labels, xs, ys, w=width, h=20, div_n=5, vpadding=2)
 
-            width = terminal_size.columns-7
-            if width > 80:
-                width -= 10
             #charts.pie(list(requested_weathers.values()), list(requested_weathers.keys()), r=10)
         print("\n\n    Opciones: n - Siguiente   p - Previa")
         print(  "\n              1 - Salir       2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
@@ -400,7 +426,8 @@ def show_city_temperatures(n):
         clear_screen()
 
     except FileNotFoundError:
-        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        print(center_multiline("\n\n\nTodavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas."))
+        press_enter_dialog()
         return
 
 def show_climate_percents():
@@ -428,7 +455,8 @@ def show_climate_percents():
         clear_screen()
 
     except FileNotFoundError:
-        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        print(center_multiline("\n\n\nTodavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas."))
+        press_enter_dialog()
         return
 
 
@@ -455,13 +483,10 @@ def show_stats():
 
         clear_screen()
 
-
-
     except FileNotFoundError:
-        print(f"Todavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas.")
+        print(center_multiline("\n\n\nTodavía no hay datos de uso! Haz por lo menos una consulta para ver las estadísticas."))
+        press_enter_dialog()
         return
-
-
 
 
 def global_statistics():
@@ -526,10 +551,45 @@ def global_statistics():
 
 
 def ask_for_api_key():
-    print("\n\nPara poder usar el consejo de la IA debes generar una llave de gemini. Para hacerlo ve a 'https://aistudio.google.com/apikey', crea una cuenta si es necesario y genera una llave. Luego ingresala aquí.")
+    clear_screen()
+    print("\n\n    Para poder usar el consejo de la IA debes generar una llave de gemini. Para hacerlo ve a 'https://aistudio.google.com/apikey', crea una cuenta si es necesario y genera una llave. Luego ingresala aquí.")
     key = input("Ingresar llave: ")
     with open(ENV_FILE, "a") as file:
         file.write(f"\nGEMINI_KEY={key}")
+
+    print(center_multiline("Llave ingresada correctamente!"))
+    press_enter_dialog()
+
+def center_multiline(text: str, pad_right=True) -> str:
+    width = shutil.get_terminal_size().columns
+    lines = text.splitlines()
+    
+    def calculate_line_width(line: str) -> int:
+        return len(line)
+        return sum(2 if ord(char) > 0x7F else 1 for char in line)
+
+    max_line_width = max(calculate_line_width(line) for line in lines) if lines else 0
+
+    left_padding = ((width//2) - (max_line_width//2))
+    
+    centered_lines = []
+    
+    for line in lines:
+        line_width = calculate_line_width(line)
+        
+        # Calculate the padding needed to center the line
+        right_padding = width - left_padding - line_width
+        centered_line = ""
+        if left_padding > 0:
+            centered_line += ' ' * left_padding
+        centered_line += line
+        if right_padding > 0 and pad_right:
+            centered_line += ' ' * right_padding
+        
+        centered_lines.append(centered_line)
+    
+    # Join the centered lines into a single string with newlines
+    return '\n'.join(centered_lines)
 
 
 def ai_advice():
@@ -541,45 +601,63 @@ def ai_advice():
         ask_for_api_key()
         env = apis.read_env_file(ENV_FILE)
 
-
-    print("""
-        ╔════════════════════════════════════════════════════════════════════════════╗
-        ║ 1 - Utilizar los datos de la última consulta                               ║
-        ║ 2 - Realizar una nueva consulta para el consejo                            ║
-        ╚════════════════════════════════════════════════════════════════════════════╝
-    """)
+    clear_screen()
+    print(center_multiline("""
+╔════════════════════════════════════════════════════════════════════════════╗
+║ 1 - Utilizar los datos de la última consulta                               ║
+║ 2 - Realizar una nueva consulta para el consejo                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+    """))
     option = input("Elegí una opción: ").strip()
 
 
     if option == '1':
         if last_request is None:
-            print("No hay datos de consulta previa. Por favor realiza una nueva consulta.")
+            print(center_multiline("No hay datos de consulta previa. Por favor realiza una nueva consulta."))
+            press_enter_dialog()
             return
         weather = last_request
         ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
         if ok:
-            print(f"\n Consejo para la ciudad de {last_city.title()}: {tip}")
+            print(center_multiline(f"\n Consejo para la ciudad de {last_city.title()}: {tip}"))
         else:
-            print(f" Error al obtener consejo: {tip}")
+            print(center_multiline(f"Error al obtener consejo: {tip}"))
+        press_enter_dialog()
+
 
     elif option == '2':
-        place = input("¿Para qué ciudad querés el consejo?: ").strip()
+        place = input("          ¿Para qué ciudad querés el consejo?: ").strip()
         weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
         if not weather:
-            print("No se pudo obtener el clima para esa ciudad.")
+            print(center_multiline("No se pudo obtener el clima para esa ciudad."))
+            press_enter_dialog()
             return
         # Guarda la consulta actual para futuras referencias
            
         ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
+        clear_screen() 
+        terminal_size = shutil.get_terminal_size()
+        print(center_multiline(f"\n\n\n------- Clima en {place} --------\n\n"))
+        print(center_multiline(str(weather), pad_right=False))
+        print("\n")
         if ok:
-            print(f"\n Consejo: {tip}")
+            print(center_multiline(f"Consejo: {tip}"))
         else:
-            print(f" Error al obtener consejo: {tip}")
+            print(center_multiline(f"Error al obtener consejo: {tip}"))
+
+        press_enter_dialog()
+        return
+
 
     else:
         print("Opción inválida. Por favor elige 1 o 2.")
 
+def press_enter_dialog():
+    print("\n")
+    input(center_multiline("Presiona [Enter] para continuar"))
+
 def mostrar_acerca_de():
+    clear_screen()
     NOMBRE_DE_GRUPO = "Pibes jansons"
     # Aca falta definir el nombre del grupo, pero hay que cambiar el texto sino se rompe el formato
     print(f"""
@@ -644,20 +722,21 @@ def mostrar_acerca_de():
 # ofrecer consejos de vestimenta mediante IA.
 def menu_principal():
     while True:
-        print("""
-        ╔════════════════════════════════════════════════════════════════════════════╗
-        ║                           MENÚ PRINCIPAL                                   ║
-        ╠════════════════════════════════════════════════════════════════════════════╣
-        ║ 1. Consultar Clima Actual y Guardar en Historial Global                    ║
-        ║ 2. Ver Mi Historial Personal de Consultas por Ciudad                       ║
-        ║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
-        ║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
-        ║ 5. Acerca De...                                                            ║
-        ║ 6. Salir                                                                   ║
-        ╚════════════════════════════════════════════════════════════════════════════╝
-        """)
-        print("\n{:^80}\n".format("Ingrese la opción deseada:"))
-        opcion = input("> ").strip()
+        clear_screen()
+        print(center_multiline("""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                           MENÚ PRINCIPAL                                   ║
+╠════════════════════════════════════════════════════════════════════════════╣
+║ 1. Consultar Clima Actual y Guardar en Historial Global                    ║
+║ 2. Ver Mi Historial Personal de Consultas por Ciudad                       ║
+║ 3. Estadísticas Globales de Uso y Exportar Historial Completo              ║
+║ 4. Consejo IA: ¿Cómo Me Visto Hoy?                                         ║
+║ 5. Acerca De...                                                            ║
+║ 6. Salir                                                                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
+        """))
+        print(center_multiline("Ingrese la opción deseada"))
+        opcion = input("         > ").strip()
         if opcion == "1":
             consult_weather() # Consultar Clima Actual y Guardar en Historial Global
         elif opcion == "2":

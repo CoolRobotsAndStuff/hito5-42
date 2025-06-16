@@ -248,8 +248,14 @@ def bar(vals: list, labels: list, w, h, div_n):
 
     screen.append(["|_"] + ["__"]*w + [f"|{0:.2f}"])
 
+    padding = 2
+    if bar_space <= 2:
+        padding = 0
+    elif bar_space <= 4:
+        padding = 1
+
     for i, v in enumerate(vals):
-        for x in range(i*bar_space+2, (i+1)*bar_space-2):
+        for x in range(i*bar_space+padding, (i+1)*bar_space-padding):
             for y in range(h, (h-int((vals[i]/max_y)*h)),-1):
                 screen[y][x+1] = colors[i]*2+"\033[0m"
 
@@ -260,9 +266,15 @@ def bar(vals: list, labels: list, w, h, div_n):
         print("")
 
     print("")
-
+    
+    size = 0
     for i, l in enumerate(labels):
-        print("      " + colors[i] + "\033[0m " + l, end="  "*(bar_space - len(l) - 2))
+        bit = "  " + colors[i] + "\033[0m " + l + " "*((bar_space*2) - len(l) - 4)
+        if (size + len(bit)) > w*4:
+            print("")
+            size = 0
+        size += len(bit)
+        print(bit, end="")
     print("")
 
 
