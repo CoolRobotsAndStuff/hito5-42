@@ -17,6 +17,7 @@ ENV_FILE='.env'
 TIMESTAMP_FORMAT = "%d-%m-%Y %H:%M:%S"
 usuario_logueado = None
 
+charts.windows_enable_unicode_and_ansi()
 
 # Banner del programa
 banner = '''
@@ -270,6 +271,7 @@ def consult_weather():
     last_request =  weather
     last_city = city_name
 
+# TODO show available cities
 def consult_history():
     clear_screen()
     global usuario_logueado
@@ -333,6 +335,8 @@ def consult_history():
 def clear_screen():
     print("\033[H\033[J")
 
+# TODO show global stats
+# TODO export matplotlib graphics/csv
 def stats_prompt():
     print("\n\n    Opciones:  1 - Salir     2 - Consultas por Ciudad     3 - Porcentaje de Condiciones Climáticas     4 - Temperaturas históricas por ciudad ")
     ipt = ""
@@ -758,6 +762,8 @@ def menu_principal():
             exit(0)
         else:
             print("{:^80}".format('Opción no válida. Intente de nuevo.'))
+
+        # TODO: opción de cerrar sesión
 
 # Iniciar el programa mostrando el menú de acceso
 if __name__ == "__main__":
