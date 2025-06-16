@@ -601,56 +601,61 @@ def ai_advice():
         ask_for_api_key()
         env = apis.read_env_file(ENV_FILE)
 
-    clear_screen()
-    print(center_multiline("""
-╔════════════════════════════════════════════════════════════════════════════╗
-║ 1 - Utilizar los datos de la última consulta                               ║
-║ 2 - Realizar una nueva consulta para el consejo                            ║
-╚════════════════════════════════════════════════════════════════════════════╝
-    """))
-    option = input("Elegí una opción: ").strip()
+    while True:
+
+        clear_screen()
+        print(center_multiline("""
+    ╔════════════════════════════════════════════════════════════════════════════╗
+    ║ 1 - Utilizar los datos de la última consulta                               ║
+    ║ 2 - Realizar una nueva consulta para el consejo                            ║
+    ║ 3 - Salir                                                                  ║
+    ╚════════════════════════════════════════════════════════════════════════════╝
+        """))
+        print(center_multiline("Elegí una opción"))
+        option = input("           > ").strip()
+
+        if option == '1':
+            if last_request is None:
+                print(center_multiline("No hay datos de consulta previa. Por favor realiza una nueva consulta."))
+                press_enter_dialog()
+                continue
+            weather = last_request
+            ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
+            if ok:
+                print(center_multiline(f"\n Consejo para la ciudad de {last_city.title()}: {tip}"))
+            else:
+                print(center_multiline(f"Error al obtener consejo: {tip}"))
+            press_enter_dialog()
 
 
-    if option == '1':
-        if last_request is None:
-            print(center_multiline("No hay datos de consulta previa. Por favor realiza una nueva consulta."))
+        elif option == '2':
+            place = input("          ¿Para qué ciudad querés el consejo?: ").strip()
+            weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
+            if not weather:
+                print(center_multiline("No se pudo obtener el clima para esa ciudad."))
+                press_enter_dialog()
+                return
+            # Guarda la consulta actual para futuras referencias
+            
+            ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
+            clear_screen() 
+            terminal_size = shutil.get_terminal_size()
+            print(center_multiline(f"\n\n\n------- Clima en {place} --------\n\n"))
+            print(center_multiline(str(weather), pad_right=False))
+            print("\n")
+            if ok:
+                print(center_multiline(f"Consejo: {tip}"))
+            else:
+                print(center_multiline(f"Error al obtener consejo: {tip}"))
+
             press_enter_dialog()
             return
-        weather = last_request
-        ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
-        if ok:
-            print(center_multiline(f"\n Consejo para la ciudad de {last_city.title()}: {tip}"))
-        else:
-            print(center_multiline(f"Error al obtener consejo: {tip}"))
-        press_enter_dialog()
 
-
-    elif option == '2':
-        place = input("          ¿Para qué ciudad querés el consejo?: ").strip()
-        weather = apis.get_weather(place, openweathermap_api_key=None) # TODO
-        if not weather:
-            print(center_multiline("No se pudo obtener el clima para esa ciudad."))
-            press_enter_dialog()
+        elif option == "3":
             return
-        # Guarda la consulta actual para futuras referencias
-           
-        ok, tip = apis.get_advice_gemini(weather, api_key=env["GEMINI_KEY"])
-        clear_screen() 
-        terminal_size = shutil.get_terminal_size()
-        print(center_multiline(f"\n\n\n------- Clima en {place} --------\n\n"))
-        print(center_multiline(str(weather), pad_right=False))
-        print("\n")
-        if ok:
-            print(center_multiline(f"Consejo: {tip}"))
+
         else:
-            print(center_multiline(f"Error al obtener consejo: {tip}"))
-
-        press_enter_dialog()
-        return
-
-
-    else:
-        print("Opción inválida. Por favor elige 1 o 2.")
+            print("Opción inválida.")
 
 def press_enter_dialog():
     print("\n")
@@ -714,6 +719,7 @@ def mostrar_acerca_de():
     ║    Grupo: {NOMBRE_DE_GRUPO} (Grupo 42)                                                          ║
     ╚═════════════════════════════════════════════════════════════════════════════════════════════════╝      
     """)
+    press_enter_dialog()
 
 # aca arme el Menú principal para :
 # consultar el clima,
